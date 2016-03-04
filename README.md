@@ -26,7 +26,7 @@ var Resource = require('super-api-js').Resource;
 These classes are documented individually below.
 
 
-### Resource
+### `Resource`
 
 The resource class represents a Super API resource.
 
@@ -191,7 +191,7 @@ Gets the value of the `$self` key.
 Gets the POJO representation of the whole resource (and included resources if applicable).  Note that this method is automatically called when you call `JSON.stringify(resource)`, where `resource` is an instance of `Resource`.
 
 
-### QueryStringParser
+### `QueryStringParser`
 
 Parses a querystring object to support the various querystring parameters supported by Super API.  Note that it works on an *object*, i.e., something that has already been parsed from the original string using querystring parsing library.
 
