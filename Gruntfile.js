@@ -6,14 +6,16 @@ module.exports = function (grunt) {
     babel: {
       dist: {
         files: [{
-          expand: true,
-          flatten: true,
-          src: ['src/lib/*.js'],
-          dest: 'dist/lib'
+          cwd: 'src',
+          src: ['**/*.js'],
+          dest: 'dist',
+          expand: true
         }]
       }
-    }
+    },
+
+    clean: ['./dist']
   });
 
-  grunt.registerTask('default', ['babel']);
+  grunt.registerTask('default', ['clean', 'babel']);
 };

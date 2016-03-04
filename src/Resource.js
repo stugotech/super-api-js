@@ -17,7 +17,7 @@ export default class Resource {
       });
 
     } else if (_.isFunction(urlFn)) {
-      this.url = urlFn;
+      this.url = _.curry(urlFn);
 
     } else {
       throw new Error('urlFn should be a string or function');
@@ -106,26 +106,34 @@ export default class Resource {
   }
 
 
-  toJSON() {
-    let obj = {
-      $self: {
-        links: this._links
-      }
+  self() {
+    let self = {
+      links: this._links
     };
 
     if (_.keys(this._meta).length) {
-      obj.$self.meta = this._meta;
+      self.meta = this._meta;
     }
 
     if (this._attributes) {
-      obj.$self.attributes = this._attributes;
+      self.attributes = this._attributes;
     }
 
     if (this._elements) {
-      obj.$self.elements = this._elements;
+      self.elements = this._elements;
     }
 
-    return _.assign(obj, this._includes);
+    return self;
+  }
+
+
+  toJSON() {
+    let obj = {
+      $self: this.self()
+    };
+
+    _.assign(obj, this._includes);
+    return obj;
   }
 };
 
