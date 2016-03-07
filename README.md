@@ -198,7 +198,7 @@ Parses a querystring object to support the various querystring parameters suppor
 The getter methods all return `null` if the relevant information isn't supplied.
 
 
-#### `constructor(qs, defaultPageSize, maximumPageSize=Number.POSITIVE_INFINITY)`
+#### `constructor(qs, defaultPageSize, maximumPageSize=Number.POSITIVE_INFINITY, defaultPageMethod)`
 
 Constructor.
 
@@ -206,7 +206,8 @@ Constructor.
 
   * `qs` - the querystring object to work on
   * `defaultPageSize` - the default page size to use if none is specified (optional)
-  * `maximumPageSize` - the upper bound on page sizes, i.e. if a value larger than this is specified in the querystring, the maximum will be used instead
+  * `maximumPageSize` - the upper bound on page sizes, i.e. if a value larger than this is specified in the querystring, the maximum will be used instead (optional)
+  * `defaultPageMethod` - the default page method to use if none is specified (optional)
 
 
 #### `sort()`
@@ -277,3 +278,9 @@ The method returns a hash with the `size`, `method` and one of `number`, `offset
 Even if `size` isn't specified in the querystring, it can get its value from `defaultPageSize` passed to the constructor.  It will be bounded by `maximumPageSize`: e.g., if the querystring specifies `page[size]=100` and `maximumPageSize` was supplied to the constructor as `50`, then the `size` field of the result will be `50`.
 
 The `method` field states which one of `number`, `offset` or `after` fields was specified, for convenience.
+
+If `defaultPageMethod` was given to the constructor, then the `method` field will equal this value if no paging method was specified in the querystring.  It will also calculate the following values automatically:
+
+  * if the default method is `number`, the `number` field will default to `1`
+  * if the default method is `offset`, the `offset` field will default to `0`
+  * if the default method is `after`, the `after` field will default to `null`

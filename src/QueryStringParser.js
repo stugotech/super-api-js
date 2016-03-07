@@ -4,10 +4,11 @@ import BadRequestError from './errors/BadRequestError';
 
 
 export default class QueryStringParser {
-  constructor(qs, defaultPageSize, maximumPageSize=Number.POSITIVE_INFINITY) {
+  constructor(qs, defaultPageSize, maximumPageSize=Number.POSITIVE_INFINITY, defaultPageMethod) {
     this.qs = qs;
     this.defaultPageSize = defaultPageSize;
     this.maximumPageSize = maximumPageSize;
+    this.defaultPageMethod = defaultPageMethod;
   }
 
 
@@ -81,7 +82,8 @@ export default class QueryStringParser {
 
   page() {
     if (typeof this._page === 'undefined') {
-      if (this.qs.page) {
+      if (this.qs.page || this.defaultPageSize || this.defaultPageMethod) {
+        this.qs.page = this.qs.page || {};
         let method = _.intersection(_.keys(this.qs.page), ['number', 'offset', 'after']);
 
         if (method.length > 1) {
@@ -89,8 +91,22 @@ export default class QueryStringParser {
         }
 
         this._page = _.mapValues(JSON.parse, this.qs.page);
-        this._page.method = method[0];
+        this._page.method = method[0] || this.defaultPageMethod;
         this._page.size = Math.min(this._page.size || this.defaultPageSize, this.maximumPageSize);
+
+        switch (this._page.method) {
+          case 'number':
+            this._page.number = this._page.number || 1;
+            break;
+
+          case 'offset':
+            this._page.offset = this._page.offset || 0;
+            break;
+
+          case 'after':
+            this._page.after = this._page.after || null;
+            break;
+        }
 
       } else {
         this._page = null;
