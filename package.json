@@ -4,7 +4,8 @@
   "description": "JavaScript library for the Super API spec",
   "main": "index.js",
   "scripts": {
-    "prepublish": "grunt"
+    "prepublish": "grunt",
+    "test": "mocha --compilers js:babel-register"
   },
   "repository": {
     "type": "git",
