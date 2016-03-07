@@ -55,12 +55,13 @@ export default class Resource {
   }
 
 
-  links(links) {
+  links(template) {
     if (arguments.length === 0) {
       return this._links;
 
     } else {
-      _.assign(this._links, compileLinks(links)(this._attributes));
+      let links = compileLinks(template)(this._attributes);
+      this._links = _.assign(this._links, links);
       return this;
     }
   }
@@ -71,7 +72,7 @@ export default class Resource {
       return this._meta;
 
     } else {
-      _.assign(this._meta, data);
+      this._meta = _.assign(this._meta, data);
       return this;
     }
   }
@@ -132,7 +133,7 @@ export default class Resource {
       $self: this.self()
     };
 
-    _.assign(obj, this._includes);
+    obj = _.assign(obj, this._includes);
     return obj;
   }
 };
