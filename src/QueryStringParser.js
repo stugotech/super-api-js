@@ -1,14 +1,13 @@
 
-import _ from 'lodash/fp';
+import _ from 'lodash';
 import BadRequestError from './errors/BadRequestError';
 
 
 export default class QueryStringParser {
-  constructor(qs, defaultPageSize, maximumPageSize=Number.POSITIVE_INFINITY, defaultPageMethod) {
+  constructor(qs, options) {
     this.qs = qs;
-    this.defaultPageSize = defaultPageSize;
-    this.maximumPageSize = maximumPageSize;
-    this.defaultPageMethod = defaultPageMethod;
+    this.options = {};
+    _.defaults(this.options, options, {maximumPageSize: Number.POSITIVE_INFINITY});
   }
 
 
@@ -82,7 +81,7 @@ export default class QueryStringParser {
 
   page() {
     if (typeof this._page === 'undefined') {
-      if (this.qs.page || this.defaultPageSize || this.defaultPageMethod) {
+      if (this.qs.page || this.options.defaultPageSize || this.options.defaultPageMethod) {
         this.qs.page = this.qs.page || {};
         let method = _.intersection(_.keys(this.qs.page), ['number', 'offset', 'after']);
 
@@ -90,9 +89,9 @@ export default class QueryStringParser {
           throw new BadRequestError('more than one method of paging specified');
         }
 
-        this._page = _.mapValues(JSON.parse, this.qs.page);
-        this._page.method = method[0] || this.defaultPageMethod;
-        this._page.size = Math.min(this._page.size || this.defaultPageSize, this.maximumPageSize);
+        this._page = _.mapValues(this.qs.page, JSON.parse);
+        this._page.method = method[0] || this.options.defaultPageMethod;
+        this._page.size = Math.min(this._page.size || this.options.defaultPageSize, this.options.maximumPageSize);
 
         switch (this._page.method) {
           case 'number':

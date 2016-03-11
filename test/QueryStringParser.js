@@ -61,7 +61,7 @@ describe('QueryStringParser', function () {
     });
 
     it('should not return null if there is a default page size', function () {
-      expect(new QueryStringParser({}, 10).page())
+      expect(new QueryStringParser({}, {defaultPageSize: 10}).page())
         .to.eql({
           method: undefined,
           size: 10
@@ -101,7 +101,8 @@ describe('QueryStringParser', function () {
     });
 
     it('should limit the page size', function () {
-      expect(new QueryStringParser({page: {number: '1', size: '100'}}, 10, 20).page())
+      expect(new QueryStringParser({page: {number: '1', size: '100'}},
+          {maximumPageSize: 20}).page())
         .to.eql({
           number: 1,
           size: 20,
@@ -110,7 +111,7 @@ describe('QueryStringParser', function () {
     });
 
     it('should return appropriate defaults for number paging', function () {
-      expect(new QueryStringParser({}, 10, 100, 'number').page())
+      expect(new QueryStringParser({}, {defaultPageSize: 10, defaultPageMethod: 'number'}).page())
         .to.eql({
           number: 1,
           size: 10,
@@ -119,7 +120,7 @@ describe('QueryStringParser', function () {
     });
 
     it('should return appropriate defaults for offset paging', function () {
-      expect(new QueryStringParser({}, 10, 100, 'offset').page())
+      expect(new QueryStringParser({}, {defaultPageSize: 10, defaultPageMethod: 'offset'}).page())
         .to.eql({
           offset: 0,
           size: 10,
@@ -128,7 +129,7 @@ describe('QueryStringParser', function () {
     });
 
     it('should return appropriate defaults for after paging', function () {
-      expect(new QueryStringParser({}, 10, 100, 'after').page())
+      expect(new QueryStringParser({}, {defaultPageSize: 10, defaultPageMethod: 'after'}).page())
         .to.eql({
           after: null,
           size: 10,

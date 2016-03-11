@@ -198,16 +198,17 @@ Parses a querystring object to support the various querystring parameters suppor
 The getter methods all return `null` if the relevant information isn't supplied.
 
 
-#### `constructor(qs, defaultPageSize, maximumPageSize=Number.POSITIVE_INFINITY, defaultPageMethod)`
+#### `constructor(qs, options)`
 
 Constructor.
 
 **Parameters**
 
   * `qs` - the querystring object to work on
-  * `defaultPageSize` - the default page size to use if none is specified (optional)
-  * `maximumPageSize` - the upper bound on page sizes, i.e. if a value larger than this is specified in the querystring, the maximum will be used instead (optional)
-  * `defaultPageMethod` - the default page method to use if none is specified (optional)
+  * `options` - an object with the following optional fields:
+    * `defaultPageSize` - the default page size to use if none is specified
+    * `maximumPageSize` - the upper bound on page sizes, i.e. if a value larger than this is specified in the querystring, the maximum will be used instead
+    * `defaultPageMethod` - the default page method to use if none is specified
 
 
 #### `sort()`
