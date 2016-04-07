@@ -285,3 +285,5 @@ If `defaultPageMethod` was given to the constructor, then the `method` field wil
   * if the default method is `number`, the `number` field will default to `1`
   * if the default method is `offset`, the `offset` field will default to `0`
   * if the default method is `after`, the `after` field will default to `null`
+
+Additionally, if the paging method is `after`, then the `field` field of the result will contain the major sort field if one is specified, and `direction` will be the direction of this sort.

@@ -89,7 +89,7 @@ export default class QueryStringParser {
           throw new BadRequestError('more than one method of paging specified');
         }
 
-        this._page = _.mapValues(this.qs.page, JSON.parse);
+        this._page = _.mapValues(this.qs.page, (x) => x !== '' ? JSON.parse(x) : void 0);
         this._page.method = method[0] || this.options.defaultPageMethod;
         this._page.size = Math.min(this._page.size || this.options.defaultPageSize, this.options.maximumPageSize);
 
@@ -103,7 +103,14 @@ export default class QueryStringParser {
             break;
 
           case 'after':
-            this._page.after = this._page.after || null;
+            if (this.qs.sort) {
+              this._page.field = this.qs.sort.match(/^-?([^,]+)/)[1];
+              this._page.direction = this.qs.sort[0] === '-' ? -1 : 1;
+            } else {
+              this._page.field = null;
+              this._page.direction = 1;
+            }
+
             break;
         }
 

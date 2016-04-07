@@ -96,7 +96,31 @@ describe('QueryStringParser', function () {
         .to.eql({
           after: 'hello',
           size: 10,
-          method: 'after'
+          method: 'after',
+          field: null,
+          direction: 1
+        });
+    });
+
+    it('should work for after paging with sort', function () {
+      expect(new QueryStringParser({page: {after: '"hello"', size: '10'}, sort: '-foo'}).page())
+        .to.eql({
+          after: 'hello',
+          size: 10,
+          method: 'after',
+          field: 'foo',
+          direction: -1
+        });
+    });
+
+    it('should allow blanks', function () {
+      expect(new QueryStringParser({page: {after: '', size: '10'}}).page())
+        .to.eql({
+          after: undefined,
+          size: 10,
+          method: 'after',
+          field: null,
+          direction: 1
         });
     });
 
@@ -131,9 +155,10 @@ describe('QueryStringParser', function () {
     it('should return appropriate defaults for after paging', function () {
       expect(new QueryStringParser({}, {defaultPageSize: 10, defaultPageMethod: 'after'}).page())
         .to.eql({
-          after: null,
           size: 10,
-          method: 'after'
+          method: 'after',
+          field: null,
+          direction: 1
         });
     });
   });
