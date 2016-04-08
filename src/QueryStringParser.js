@@ -7,24 +7,31 @@ export default class QueryStringParser {
   constructor(qs, options) {
     this.qs = qs;
     this.options = {};
-    _.defaults(this.options, options, {maximumPageSize: Number.POSITIVE_INFINITY});
+    _.defaults(this.options, options, {maximumPageSize: Number.POSITIVE_INFINITY, idKey: 'id'});
   }
 
 
   sort() {
     if (typeof this._sort === 'undefined') {
+      let page = this.page();
+      let dir = page && page.reverse ? -1 : 1;
+
       if (this.qs.sort) {
         let sort = {};
 
         for (let field of this.qs.sort.split(',')) {
           if (field[0] === '-') {
-            sort[field.substring(1)] = -1;
+            sort[field.substring(1)] = -dir;
           } else {
-            sort[field] = 1;
+            sort[field] = dir;
           }
         }
 
         this._sort = sort;
+
+      } else if (page && page.method === 'after') {
+        this._sort = {};
+        this._sort[this.options.idKey] = dir;
 
       } else {
         this._sort = null;
@@ -111,7 +118,7 @@ export default class QueryStringParser {
               this._page.field = this.qs.sort.match(/^-?([^,]+)/)[1];
               this._page.direction = this.qs.sort[0] === '-' ? -1 : 1;
             } else {
-              this._page.field = null;
+              this._page.field = this.options.idKey;
               this._page.direction = 1;
             }
 

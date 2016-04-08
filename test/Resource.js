@@ -1,6 +1,7 @@
 
 import {expect} from 'chai';
 import Resource from '../src/Resource';
+import QueryStringParser from '../src/QueryStringParser';
 
 
 describe('Resource', function () {
@@ -155,6 +156,93 @@ describe('Resource', function () {
       expect(resource.links()).to.eql({
         $self: 'http://api/widgets/1',
         related: 'http://api/users?filter[name]=Fred'
+      });
+    });
+  });
+
+
+  describe('querystring', function () {
+    it('should alter the $self link', function () {
+      let qs = new QueryStringParser({page: {number: 1}, sort: 'foo'});
+
+      resource
+        .querystring(qs)
+        .elements([{id: 1}]);
+
+      expect(resource.links().$self).to.eql('http://api/widgets?page%5Bnumber%5D=1&sort=foo');
+    });
+  })
+
+
+  describe('paging', function () {
+    it('should work for number paging', function () {
+      let qs = new QueryStringParser({page: {number: 2, size: 2}, sort: 'foo'});
+      let count = 5;
+
+      resource
+        .querystring(qs)
+        .elements([{id: 1}])
+        .paging(count);
+
+      expect(resource.links()).to.eql({
+        $self: 'http://api/widgets?page%5Bnumber%5D=2&page%5Bsize%5D=2&sort=foo',
+        first: 'http://api/widgets?page%5Bnumber%5D=1&page%5Bsize%5D=2&sort=foo',
+        prev: 'http://api/widgets?page%5Bnumber%5D=1&page%5Bsize%5D=2&sort=foo',
+        next: 'http://api/widgets?page%5Bnumber%5D=3&page%5Bsize%5D=2&sort=foo',
+        last: 'http://api/widgets?page%5Bnumber%5D=3&page%5Bsize%5D=2&sort=foo'
+      });
+
+      expect(resource.meta()).to.eql({
+        count: 5,
+        pageCount: 3
+      });
+    });
+
+
+    it('should work for offset paging', function () {
+      let qs = new QueryStringParser({page: {offset: 2, size: 2}, sort: 'foo'});
+      let count = 5;
+
+      resource
+        .querystring(qs)
+        .elements([{id: 1}])
+        .paging(count);
+
+      expect(resource.links()).to.eql({
+        $self: 'http://api/widgets?page%5Boffset%5D=2&page%5Bsize%5D=2&sort=foo',
+        first: 'http://api/widgets?page%5Boffset%5D=0&page%5Bsize%5D=2&sort=foo',
+        prev: 'http://api/widgets?page%5Boffset%5D=0&page%5Bsize%5D=2&sort=foo',
+        next: 'http://api/widgets?page%5Boffset%5D=4&page%5Bsize%5D=2&sort=foo',
+        last: 'http://api/widgets?page%5Boffset%5D=4&page%5Bsize%5D=2&sort=foo'
+      });
+
+      expect(resource.meta()).to.eql({
+        count: 5,
+        pageCount: 3
+      });
+    });
+
+
+    it('should work for after paging', function () {
+      let qs = new QueryStringParser({page: {after: 1, size: 2}, sort: 'foo'});
+      let count = 5;
+
+      resource
+        .querystring(qs)
+        .elements([{foo: 2}, {foo: 3}])
+        .paging(count, true);
+
+      expect(resource.links()).to.eql({
+        $self: 'http://api/widgets?page%5Bafter%5D=1&page%5Bsize%5D=2&sort=foo',
+        first: 'http://api/widgets?page%5Bafter%5D=&page%5Bsize%5D=2&sort=foo',
+        prev: 'http://api/widgets?page%5Bbefore%5D=2&page%5Bsize%5D=2&sort=foo',
+        next: 'http://api/widgets?page%5Bafter%5D=3&page%5Bsize%5D=2&sort=foo',
+        last: 'http://api/widgets?page%5Bbefore%5D=&page%5Bsize%5D=2&sort=foo'
+      });
+
+      expect(resource.meta()).to.eql({
+        count: 5,
+        pageCount: 3
       });
     });
   });

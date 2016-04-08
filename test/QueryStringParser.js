@@ -92,27 +92,33 @@ describe('QueryStringParser', function () {
     });
 
     it('should work for after paging', function () {
-      expect(new QueryStringParser({page: {after: '"hello"', size: '10'}}).page())
-        .to.eql({
-          after: 'hello',
-          size: 10,
-          method: 'after',
-          field: null,
-          direction: 1,
-          reverse: false
-        });
+      let qs = new QueryStringParser({page: {after: '"hello"', size: '10'}});
+
+      expect(qs.page()).to.eql({
+        after: 'hello',
+        size: 10,
+        method: 'after',
+        field: 'id',
+        direction: 1,
+        reverse: false
+      });
+
+      expect(qs.sort()).to.eql({id: 1});
     });
 
     it('should work for before paging', function () {
-      expect(new QueryStringParser({page: {before: '"hello"', size: '10'}}).page())
-        .to.eql({
-          after: 'hello',
-          size: 10,
-          method: 'after',
-          field: null,
-          direction: -1,
-          reverse: true
-        });
+      let qs = new QueryStringParser({page: {before: '"hello"', size: '10'}});
+
+      expect(qs.page()).to.eql({
+        after: 'hello',
+        size: 10,
+        method: 'after',
+        field: 'id',
+        direction: -1,
+        reverse: true
+      });
+
+      expect(qs.sort()).to.eql({id: -1});
     });
 
     it('should work for after paging with sort', function () {
@@ -128,15 +134,18 @@ describe('QueryStringParser', function () {
     });
 
     it('should work for before paging with sort', function () {
-      expect(new QueryStringParser({page: {before: '"hello"', size: '10'}, sort: '-foo'}).page())
-        .to.eql({
-          after: 'hello',
-          size: 10,
-          method: 'after',
-          field: 'foo',
-          direction: 1,
-          reverse: true
-        });
+      let qs = new QueryStringParser({page: {before: '"hello"', size: '10'}, sort: '-foo'});
+
+      expect(qs.page()).to.eql({
+        after: 'hello',
+        size: 10,
+        method: 'after',
+        field: 'foo',
+        direction: 1,
+        reverse: true
+      });
+
+      expect(qs.sort()).to.eql({foo: 1});
     });
 
     it('should allow blanks', function () {
@@ -145,7 +154,7 @@ describe('QueryStringParser', function () {
           after: undefined,
           size: 10,
           method: 'after',
-          field: null,
+          field: 'id',
           direction: 1,
           reverse: false
         });
@@ -184,7 +193,7 @@ describe('QueryStringParser', function () {
         .to.eql({
           size: 10,
           method: 'after',
-          field: null,
+          field: 'id',
           direction: 1,
           reverse: false
         });
