@@ -35,12 +35,7 @@ export default class Resource {
 
       this._data = data;
       this._elements = resourcify(data, this.url(this._type), links).elements;
-      this._links.$self = this.url(this._type, null);
-
-      if (this._querystring) {
-        this._links.$self += '?' + qs.stringify(this._querystring.qs);
-      }
-
+      this._links.$self = this.pagingLink();
       return this;
     }
   }
@@ -55,12 +50,7 @@ export default class Resource {
         throw new Error('data must be an object and not an array');
 
       this._attributes = resourcify(data).attributes;
-      this._links.$self = this.url(this._type, data);
-
-      if (this._querystring) {
-        this._links.$self += '?' + qs.stringify(this._querystring.qs);
-      }
-
+      this._links.$self = this.pagingLink(undefined, data);
       return this;
     }
   }
@@ -140,11 +130,19 @@ export default class Resource {
   }
 
 
-  pagingLink(page) {
+  pagingLink(page, data) {
     let querystring = {page};
-    _.defaults(querystring, this._querystring.qs);
-    querystring.page.size = this._querystring.page().size;
-    return this.url(this._type, null) + '?' + qs.stringify(querystring);
+
+    if (this._querystring)
+      _.defaults(querystring, this._querystring.qs);
+
+    if (page)
+      querystring.page.size = this._querystring.page().size;
+
+    let str = qs.stringify(querystring);
+    if (str) str = '?' + str;
+
+    return this.url(this._type, data) + str;
   }
 
 
