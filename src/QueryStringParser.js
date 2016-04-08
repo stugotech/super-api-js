@@ -122,7 +122,7 @@ export default class QueryStringParser {
               this._page.direction = 1;
             }
 
-            if (this._page.before) {
+            if (typeof this.qs.page.before !== 'undefined') {
               this._page.after = this._page.before;
               delete this._page.before;
               this._page.direction = -this._page.direction;

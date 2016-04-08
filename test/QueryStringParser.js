@@ -158,6 +158,16 @@ describe('QueryStringParser', function () {
           direction: 1,
           reverse: false
         });
+
+      expect(new QueryStringParser({page: {before: '', size: '10'}}).page())
+        .to.eql({
+          after: undefined,
+          size: 10,
+          method: 'after',
+          field: 'id',
+          direction: -1,
+          reverse: true
+        });
     });
 
     it('should limit the page size', function () {
