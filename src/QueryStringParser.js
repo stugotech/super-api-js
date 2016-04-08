@@ -83,10 +83,14 @@ export default class QueryStringParser {
     if (typeof this._page === 'undefined') {
       if (this.qs.page || this.options.defaultPageSize || this.options.defaultPageMethod) {
         this.qs.page = this.qs.page || {};
-        let method = _.intersection(_.keys(this.qs.page), ['number', 'offset', 'after']);
+        let method = _.intersection(_.keys(this.qs.page), ['number', 'offset', 'after', 'before']);
 
         if (method.length > 1) {
           throw new BadRequestError('more than one method of paging specified');
+        }
+
+        if (method[0] === 'before') {
+          method[0] = 'after';
         }
 
         this._page = _.mapValues(this.qs.page, (x) => x !== '' ? JSON.parse(x) : void 0);
@@ -109,6 +113,15 @@ export default class QueryStringParser {
             } else {
               this._page.field = null;
               this._page.direction = 1;
+            }
+
+            if (this._page.before) {
+              this._page.after = this._page.before;
+              delete this._page.before;
+              this._page.direction = -this._page.direction;
+              this._page.reverse = true;
+            } else {
+              this._page.reverse = false;
             }
 
             break;

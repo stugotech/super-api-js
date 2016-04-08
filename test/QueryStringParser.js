@@ -98,7 +98,20 @@ describe('QueryStringParser', function () {
           size: 10,
           method: 'after',
           field: null,
-          direction: 1
+          direction: 1,
+          reverse: false
+        });
+    });
+
+    it('should work for before paging', function () {
+      expect(new QueryStringParser({page: {before: '"hello"', size: '10'}}).page())
+        .to.eql({
+          after: 'hello',
+          size: 10,
+          method: 'after',
+          field: null,
+          direction: -1,
+          reverse: true
         });
     });
 
@@ -109,7 +122,20 @@ describe('QueryStringParser', function () {
           size: 10,
           method: 'after',
           field: 'foo',
-          direction: -1
+          direction: -1,
+          reverse: false
+        });
+    });
+
+    it('should work for before paging with sort', function () {
+      expect(new QueryStringParser({page: {before: '"hello"', size: '10'}, sort: '-foo'}).page())
+        .to.eql({
+          after: 'hello',
+          size: 10,
+          method: 'after',
+          field: 'foo',
+          direction: 1,
+          reverse: true
         });
     });
 
@@ -120,7 +146,8 @@ describe('QueryStringParser', function () {
           size: 10,
           method: 'after',
           field: null,
-          direction: 1
+          direction: 1,
+          reverse: false
         });
     });
 
@@ -158,7 +185,8 @@ describe('QueryStringParser', function () {
           size: 10,
           method: 'after',
           field: null,
-          direction: 1
+          direction: 1,
+          reverse: false
         });
     });
   });
