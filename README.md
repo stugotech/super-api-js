@@ -90,35 +90,35 @@ This creates the following resource object:
 
 ```json
 {
-  "$self": {
-    "links": {
-      "$self": "https://blog/api/posts"
-    },
-    "elements": {
-      "https://blog/api/1": {
-        "links": {
-          "author": "https://blog/api/users/1"
-        },
-        "attributes": {
-          "id": 1,
-          "title": "Post 1",
-          "content": "This is the first post.",
-          "authorId": 1
-        }
+  "links": {
+    "$self": "https://blog/api/posts"
+  },
+  "elements": [
+    {
+      "links": {
+        "$self": "https://blog/api/1",
+        "author": "https://blog/api/users/1"
       },
-      "https://blog/api/2": {
-        "links": {
-          "author": "https://blog/api/users/1"
-        },
-        "attributes": {
-          "id": 2,
-          "title": "Post 2",
-          "content": "This is the second post.",
-          "authorId": 1
-        }
+      "attributes": {
+        "id": 1,
+        "title": "Post 1",
+        "content": "This is the first post.",
+        "authorId": 1
+      }
+    },
+    {
+      "links": {
+        "$self": "https://blog/api/2",
+        "author": "https://blog/api/users/1"
+      },
+      "attributes": {
+        "id": 2,
+        "title": "Post 2",
+        "content": "This is the second post.",
+        "authorId": 1
       }
     }
-  }
+  ]
 }
 ```
 
@@ -173,17 +173,41 @@ Includes extraneous resources in this resource.
 
 **Details**
 
-The resources are included as part of this resource.  The URLs they are included under are taken from the `$self` links of each resource, and the `$self` link is deleted from each as it is redundant.
+The resources are included as part of this resource.
 
 
 #### `include()`
 
-Gets the resources included in this resource (i.e., everything except the `$self` key).
+Gets the resources included in this resource.
 
 
-#### `self()`
+#### `querystring(qs)`
 
-Gets the value of the `$self` key.
+Sets the querystring object, an instance of `QueryStringParser`, to be used by the `paging(count, exists)` function.
+
+**Parameters**
+
+  * `qs` - the querystring object
+
+
+#### `querystring()`
+
+Gets the querystring object.
+
+
+#### `paging(count, exists)`
+
+Sets the paging links.
+
+**Parameters**
+
+  * `count` - the number of documents in total
+  * `exists` - for `after` paging
+
+**Details**
+
+TODO
+
 
 
 #### `toJSON()`

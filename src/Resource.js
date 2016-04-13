@@ -7,7 +7,7 @@ export default class Resource {
     this._type = type;
     this._links = {};
     this._meta = {};
-    this._includes = {};
+    this._includes = [];
 
     if (_.isString(urlFn)) {
       this.url = _.curry((resourceType, resource) => {
@@ -76,26 +76,26 @@ export default class Resource {
 
       switch (page.method) {
         case 'number':
-          l.first = this.pagingLink({number: 1});
-          l.last = this.pagingLink({number: pageCount});
+          l.$first = this.pagingLink({number: 1});
+          l.$last = this.pagingLink({number: pageCount});
 
           if (page.number > 1)
-            l.prev = this.pagingLink({number: page.number - 1});
+            l.$previous = this.pagingLink({number: page.number - 1});
 
           if (page.number < pageCount)
-            l.next = this.pagingLink({number: page.number + 1});
+            l.$next = this.pagingLink({number: page.number + 1});
 
           break;
 
         case 'offset':
-          l.first = this.pagingLink({offset: 0});
-          l.last = this.pagingLink({offset: (pageCount -  1) * page.size});
+          l.$first = this.pagingLink({offset: 0});
+          l.$last = this.pagingLink({offset: (pageCount -  1) * page.size});
 
           if (page.offset > 0)
-            l.prev = this.pagingLink({offset: Math.max(0, page.offset - page.size)});
+            l.$previous = this.pagingLink({offset: Math.max(0, page.offset - page.size)});
 
           if (page.offset < count - page.size)
-            l.next = this.pagingLink({offset: page.offset + page.size});
+            l.$next = this.pagingLink({offset: page.offset + page.size});
 
           break;
 
@@ -111,14 +111,14 @@ export default class Resource {
             next = exists;
           }
 
-          l.first = this.pagingLink({after: ''});
-          l.last = this.pagingLink({before: ''});
+          l.$first = this.pagingLink({after: ''});
+          l.$last = this.pagingLink({before: ''});
 
           if (prev)
-            l.prev = this.pagingLink({before: JSON.stringify(this._data[0][page.field])});
+            l.$previous = this.pagingLink({before: JSON.stringify(this._data[0][page.field])});
 
           if (next)
-            l.next = this.pagingLink({after: JSON.stringify(this._data[this._data.length-1][page.field])});
+            l.$next = this.pagingLink({after: JSON.stringify(this._data[this._data.length-1][page.field])});
 
           break;
       }
@@ -181,16 +181,11 @@ export default class Resource {
 
       } else {
         if (resource instanceof Resource) {
-          resource = resource.toJSON().$self;
+          resource = resource.toJSON();
         }
 
         resource = _.cloneDeep(resource);
-        this._includes[resource.links.$self] = resource;
-        delete resource.links.$self;
-
-        if (!_.keys(resource.links).length) {
-          delete resource.links;
-        }
+        this._includes.push(resource);
       }
 
       return this;
@@ -198,60 +193,56 @@ export default class Resource {
   }
 
 
-  self() {
-    let self = {
+  toJSON() {
+    let obj = {
       links: this._links
     };
 
     if (_.keys(this._meta).length) {
-      self.meta = this._meta;
+      obj.meta = this._meta;
     }
 
     if (this._attributes) {
-      self.attributes = this._attributes;
+      obj.attributes = this._attributes;
     }
 
     if (this._elements) {
-      self.elements = this._elements;
+      obj.elements = this._elements;
     }
 
-    return self;
-  }
+    if (this._includes.length) {
+      obj.includes = this._includes;
+    }
 
-
-  toJSON() {
-    let obj = {
-      $self: this.self()
-    };
-
-    _.assign(obj, this._includes);
     return obj;
   }
 };
 
 
-export function resourcify(data, keyBy, links) {
+export function resourcify(data, keyBy, links={}) {
+  links.$self = keyBy;
   links = compileLinks(links);
 
   if (Array.isArray(data)) {
     return {
-      elements: _(data).keyBy(keyBy).mapValues(resourcifyElement(links)).value()
+      elements: _.map(data, _.partial(resourcifyElement, _, links))
     }
 
   } else {
-    return resourcifyElement(links, data);
+    return resourcifyElement(data, links);
   }
 };
 
 
-const resourcifyElement = _.curry(function (linksTemplate, data) {
+const resourcifyElement = function (data, linksTemplate) {
   let obj = {attributes: data};
 
-  if (linksTemplate)
+  if (linksTemplate) {
     obj.links = linksTemplate(data);
+  }
 
   return obj;
-});
+};
 
 
 export function compileLinks(links) {

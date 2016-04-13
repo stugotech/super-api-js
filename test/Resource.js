@@ -37,25 +37,30 @@ describe('Resource', function () {
         {id: 2, name: 'Wilma'}
       ]);
 
-      expect(resource.self()).to.eql({
+      expect(resource.toJSON()).to.eql({
         links: {
           $self: 'http://api/widgets'
         },
-        elements: {
-          'http://api/widgets/1': {
+        elements: [
+          {
+            links: {
+              $self: 'http://api/widgets/1'
+            },
             attributes: {
               id: 1,
               name: 'Fred'
             }
           },
-
-          'http://api/widgets/2': {
+          {
+            links: {
+              $self: 'http://api/widgets/2'
+            },
             attributes: {
               id: 2,
               name: 'Wilma'
             }
           }
-        }
+        ]
       })
     });
 
@@ -69,21 +74,27 @@ describe('Resource', function () {
         {id: 2, name: 'Wilma'}
       ]);
 
-      expect(resource.elements()).to.eql({
-        'http://api/widgets/1': {
+      expect(resource.elements()).to.eql([
+        {
+          links: {
+            $self: 'http://api/widgets/1'
+          },
           attributes: {
             id: 1,
             name: 'Fred'
           }
         },
 
-        'http://api/widgets/2': {
+        {
+          links: {
+            $self: 'http://api/widgets/2'
+          },
           attributes: {
             id: 2,
             name: 'Wilma'
           }
         }
-      });
+      ]);
     });
 
     it('should allow links to be specified for all elements', function () {
@@ -94,9 +105,10 @@ describe('Resource', function () {
         posts: 'http://api/user/${id}/posts'
       });
 
-      expect(resource.elements()).to.eql({
-        'http://api/widgets/1': {
+      expect(resource.elements()).to.eql([
+        {
           links: {
+            $self: 'http://api/widgets/1',
             posts: 'http://api/user/1/posts'
           },
           attributes: {
@@ -105,8 +117,9 @@ describe('Resource', function () {
           }
         },
 
-        'http://api/widgets/2': {
+        {
           links: {
+            $self: 'http://api/widgets/2',
             posts: 'http://api/user/2/posts'
           },
           attributes: {
@@ -114,7 +127,7 @@ describe('Resource', function () {
             name: 'Wilma'
           }
         }
-      });
+      ]);
     });
   });
 
@@ -123,7 +136,7 @@ describe('Resource', function () {
     it('should set the attributes property and $self link', function () {
       resource.attributes({id: 1, name: 'Fred'});
 
-      expect(resource.self()).to.eql({
+      expect(resource.toJSON()).to.eql({
         links: {
           $self: 'http://api/widgets/1'
         },
@@ -171,7 +184,17 @@ describe('Resource', function () {
 
       expect(resource.links().$self).to.eql('http://api/widgets?page%5Bnumber%5D=1&sort=foo');
     });
-  })
+
+    it('should not add an empty query', function () {
+      let qs = new QueryStringParser({});
+
+      resource
+        .querystring(qs)
+        .elements([{id: 1}]);
+
+      expect(resource.links().$self).to.eql('http://api/widgets');
+    });
+  });
 
 
   describe('paging', function () {
@@ -186,10 +209,10 @@ describe('Resource', function () {
 
       expect(resource.links()).to.eql({
         $self: 'http://api/widgets?page%5Bnumber%5D=2&page%5Bsize%5D=2&sort=foo',
-        first: 'http://api/widgets?page%5Bnumber%5D=1&page%5Bsize%5D=2&sort=foo',
-        prev: 'http://api/widgets?page%5Bnumber%5D=1&page%5Bsize%5D=2&sort=foo',
-        next: 'http://api/widgets?page%5Bnumber%5D=3&page%5Bsize%5D=2&sort=foo',
-        last: 'http://api/widgets?page%5Bnumber%5D=3&page%5Bsize%5D=2&sort=foo'
+        $first: 'http://api/widgets?page%5Bnumber%5D=1&page%5Bsize%5D=2&sort=foo',
+        $previous: 'http://api/widgets?page%5Bnumber%5D=1&page%5Bsize%5D=2&sort=foo',
+        $next: 'http://api/widgets?page%5Bnumber%5D=3&page%5Bsize%5D=2&sort=foo',
+        $last: 'http://api/widgets?page%5Bnumber%5D=3&page%5Bsize%5D=2&sort=foo'
       });
 
       expect(resource.meta()).to.eql({
@@ -210,10 +233,10 @@ describe('Resource', function () {
 
       expect(resource.links()).to.eql({
         $self: 'http://api/widgets?page%5Boffset%5D=2&page%5Bsize%5D=2&sort=foo',
-        first: 'http://api/widgets?page%5Boffset%5D=0&page%5Bsize%5D=2&sort=foo',
-        prev: 'http://api/widgets?page%5Boffset%5D=0&page%5Bsize%5D=2&sort=foo',
-        next: 'http://api/widgets?page%5Boffset%5D=4&page%5Bsize%5D=2&sort=foo',
-        last: 'http://api/widgets?page%5Boffset%5D=4&page%5Bsize%5D=2&sort=foo'
+        $first: 'http://api/widgets?page%5Boffset%5D=0&page%5Bsize%5D=2&sort=foo',
+        $previous: 'http://api/widgets?page%5Boffset%5D=0&page%5Bsize%5D=2&sort=foo',
+        $next: 'http://api/widgets?page%5Boffset%5D=4&page%5Bsize%5D=2&sort=foo',
+        $last: 'http://api/widgets?page%5Boffset%5D=4&page%5Bsize%5D=2&sort=foo'
       });
 
       expect(resource.meta()).to.eql({
@@ -234,10 +257,10 @@ describe('Resource', function () {
 
       expect(resource.links()).to.eql({
         $self: 'http://api/widgets?page%5Bafter%5D=1&page%5Bsize%5D=2&sort=foo',
-        first: 'http://api/widgets?page%5Bafter%5D=&page%5Bsize%5D=2&sort=foo',
-        prev: 'http://api/widgets?page%5Bbefore%5D=2&page%5Bsize%5D=2&sort=foo',
-        next: 'http://api/widgets?page%5Bafter%5D=3&page%5Bsize%5D=2&sort=foo',
-        last: 'http://api/widgets?page%5Bbefore%5D=&page%5Bsize%5D=2&sort=foo'
+        $first: 'http://api/widgets?page%5Bafter%5D=&page%5Bsize%5D=2&sort=foo',
+        $previous: 'http://api/widgets?page%5Bbefore%5D=2&page%5Bsize%5D=2&sort=foo',
+        $next: 'http://api/widgets?page%5Bafter%5D=3&page%5Bsize%5D=2&sort=foo',
+        $last: 'http://api/widgets?page%5Bbefore%5D=&page%5Bsize%5D=2&sort=foo'
       });
 
       expect(resource.meta()).to.eql({
@@ -268,19 +291,22 @@ describe('Resource', function () {
         .include({links: {$self: 'http://api/sprockets/2'}, attributes: {id: 2}});
 
       expect(resource.toJSON()).to.eql({
-        $self: {
-          links: {
-            $self: 'http://api/widgets/1'
-          },
-          attributes: {
-            id: 1
-          }
+        links: {
+          $self: 'http://api/widgets/1'
         },
-        'http://api/sprockets/2': {
-          attributes: {
-            id: 2
+        attributes: {
+          id: 1
+        },
+        includes: [
+          {
+            links: {
+              $self: 'http://api/sprockets/2'
+            },
+            attributes: {
+              id: 2
+            }
           }
-        }
+        ]
       });
     });
 
@@ -290,19 +316,22 @@ describe('Resource', function () {
         .include(new Resource('sprockets', 'http://api').attributes({id: 2}));
 
       expect(resource.toJSON()).to.eql({
-        $self: {
-          links: {
-            $self: 'http://api/widgets/1'
-          },
-          attributes: {
-            id: 1
-          }
+        links: {
+          $self: 'http://api/widgets/1'
         },
-        'http://api/sprockets/2': {
-          attributes: {
-            id: 2
+        attributes: {
+          id: 1
+        },
+        includes: [
+          {
+            links: {
+              $self: 'http://api/sprockets/2'
+            },
+            attributes: {
+              id: 2
+            }
           }
-        }
+        ]
       });
     });
 
@@ -315,24 +344,30 @@ describe('Resource', function () {
         ]);
 
       expect(resource.toJSON()).to.eql({
-        $self: {
-          links: {
-            $self: 'http://api/widgets/1'
+        links: {
+          $self: 'http://api/widgets/1'
+        },
+        attributes: {
+          id: 1
+        },
+        includes: [
+          {
+            links: {
+              $self: 'http://api/sprockets/2'
+            },
+            attributes: {
+              id: 2
+            }
           },
-          attributes: {
-            id: 1
+          {
+            links: {
+              $self: 'http://api/sprockets/3'
+            },
+            attributes: {
+              id: 3
+            }
           }
-        },
-        'http://api/sprockets/2': {
-          attributes: {
-            id: 2
-          }
-        },
-        'http://api/sprockets/3': {
-          attributes: {
-            id: 3
-          }
-        }
+        ]
       });
     });
 
@@ -345,24 +380,30 @@ describe('Resource', function () {
         ]);
 
       expect(resource.toJSON()).to.eql({
-        $self: {
-          links: {
-            $self: 'http://api/widgets/1'
+        links: {
+          $self: 'http://api/widgets/1'
+        },
+        attributes: {
+          id: 1
+        },
+        includes: [
+          {
+            links: {
+              $self: 'http://api/sprockets/2'
+            },
+            attributes: {
+              id: 2
+            }
           },
-          attributes: {
-            id: 1
+          {
+            links: {
+              $self: 'http://api/sprockets/3'
+            },
+            attributes: {
+              id: 3
+            }
           }
-        },
-        'http://api/sprockets/2': {
-          attributes: {
-            id: 2
-          }
-        },
-        'http://api/sprockets/3': {
-          attributes: {
-            id: 3
-          }
-        }
+        ]
       });
     });
   });
