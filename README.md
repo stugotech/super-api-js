@@ -28,18 +28,7 @@ These classes are documented individually below.
 
 ### `Resource`
 
-The resource class represents a Super API resource.
-
-#### `constructor(type, urlFn)`
-
-Constructor.
-
-**Parameters**
-
-  * `type` - the name of the resource, for generating links
-  * `urlFn` - the function to use to generate links
-
-    The function has the signature `function (type, resource)`, where `type` is the name of the resource to generate a URL for (as above) and `resource` is the POJO representing the resource.
+The resource class represents a Super API resource.  Note that it is **immutable** and therefore setting properties on it clones the instance and returns it with the new property value set.
 
 #### `constructor(type, baseUrl, idField='id')`
 
@@ -55,18 +44,17 @@ Constructor.
 
 This form of the constructor will automatically generate URLs for resources as `${baseUrl}/${type}` for resource collections or `${baseUrl}/${type}/${id}` for individual resources - the value for `id` will be taken from the field specified by `idField` on the resource the URL is being generated for.
 
-#### `elements(data, links)`
+#### `elements(data)`
 
 Sets the element data.
 
 **Parameters**
 
   * `data` - an array of POJOs to include in the collection
-  * `links` - a hash of link templates to include on each resource in the collection
 
 **Details**
 
-The `links` parameter is a hash with keys named the same as the links you want on each element, and values as lodash templates.  This method also automatically sets the `$self` link to the collection URL for the resource type specified in the constructor.  If this isn't correct, you should set it yourself afterwards.
+The `links` parameter is a hash with keys named the same as the links you want on each element, and values as lodash templates.
 
 **Example**
 
@@ -82,8 +70,8 @@ let links = {
   author: 'https://blog/api/users/${authorId}'
 };
 
-let posts = new Resource('posts', 'https://blog/api');
-posts.elements(data, links);
+let posts = new Resource('posts', 'https://blog/api')
+  .elements(data, links);
 ```
 
 This creates the following resource object:
@@ -135,10 +123,6 @@ Sets the attributes property.
 
   * `data` - a POJO
 
-**Details**
-
-This method also sets the `$self` link to the the resource link for the data you supplied, using the resource type and URL function supplied in the constructor, if you supplied it.  If this isn't correct, you should set this URL yourself afterwards.
-
 
 #### `attributes()`
 
@@ -155,7 +139,7 @@ Sets the `links` property.
 
 **Details**
 
-The `links` parameter is a hash of link templates, where each key is a key to appear in the `links` property, and each value is a lodash template.  The templates are evaluated using the `attributes` property as a model.
+The `links` parameter is a hash of link templates, where each key is a key to appear in the `links` property, and each value is a lodash template.  The templates are evaluated using the `attributes` property or each item in the `elements` property as a model.
 
 
 #### `links()`
@@ -183,7 +167,7 @@ Gets the resources included in this resource.
 
 #### `querystring(qs)`
 
-Sets the querystring object, an instance of `QueryStringParser`, to be used by the `paging(count, exists)` function.
+Sets the querystring object, an instance of `QueryStringParser`, to be used by the `paging(count, exists)` function.  This will also modify `$self` links to include querystring parameters.
 
 **Parameters**
 
@@ -197,7 +181,7 @@ Gets the querystring object.
 
 #### `paging(count, exists)`
 
-Sets the paging links.
+Sets the paging information.
 
 **Parameters**
 
@@ -206,7 +190,7 @@ Sets the paging links.
 
 **Details**
 
-TODO
+If `paging(count, exists)` and `querstring(qs)` are both called, then the `links` property of the resource will include the relevant paging links, i.e., applicable links from `$previous`, `$next`, `$first`, and `$last`, generated according to the settings in the `QueryStringParser` instance.
 
 
 

@@ -1,253 +1,268 @@
 
 import _ from 'lodash';
+import Immutable from 'immutable-builder';
 import qs from 'qs';
+import QueryStringParser, {querystringify} from './QueryStringParser';
 
-export default class Resource {
-  constructor(type, urlFn, idField='id') {
-    this._type = type;
-    this._links = {};
-    this._meta = {};
-    this._includes = [];
+export default Resource;
 
-    if (_.isString(urlFn)) {
-      this.url = _.curry((resourceType, resource) => {
-        let url = urlFn + '/' + resourceType;
-        if (resource) url += '/' + _.property(idField)(resource);
-        return url;
-      });
-
-    } else if (_.isFunction(urlFn)) {
-      this.url = _.curry(urlFn);
-
-    } else {
-      throw new Error('urlFn should be a string or function');
-    }
-  }
+function Resource(_type, _baseUrl, _idKey='id') {
+  return Immutable.new({
+    _attributes: null,
+    _baseUrl,
+    _elements: [],
+    _links: {},
+    _idKey,
+    _includes: [],
+    _meta: {},
+    // relationship: {name: '', sourceKey: '', destKey: 'id', resource: ''}
+    _relationships: [],
+    _type,
+    _querystring: null,
+    _paging: null,
+    _relatedResources: {},
 
 
-  elements(data, links) {
-    if (arguments.length === 0) {
-      return this._elements;
-
-    } else {
-      if (!_.isArray(data))
-        throw new Error('data must be an array');
-
-      this._data = data;
-      this._elements = resourcify(data, this.url(this._type), links).elements;
-      this._links.$self = this.pagingLink();
-      return this;
-    }
-  }
+    _urlGenerator(type, id) {
+      let url = this._baseUrl + '/' + type;
+      if (id) url += '/' + id;
+      return url;
+    },
 
 
-  attributes(data) {
-    if (arguments.length === 0) {
-      return this._attributes;
+    querystring(value) {
+      if (arguments.length) {
+        if (!(value instanceof QueryStringParser)) {
+          throw new Error('querystring must be instance of QueryStringParser');
 
-    } else {
-      if (!_.isObject(data) || _.isArray(data))
-        throw new Error('data must be an object and not an array');
-
-      this._attributes = resourcify(data).attributes;
-      this._links.$self = this.pagingLink(undefined, data);
-      return this;
-    }
-  }
-
-
-  querystring(qs) {
-    if (arguments.length === 0) {
-      return this._querystring;
-
-    } else {
-      this._querystring = qs;
-      return this;
-    }
-  }
-
-
-  paging(count, exists) {
-    let page;
-
-    if (this._querystring && (page = this._querystring.page())) {
-      let pageCount = Math.ceil(count / page.size);
-      let l = this._links;
-
-      switch (page.method) {
-        case 'number':
-          l.$first = this.pagingLink({number: 1});
-          l.$last = this.pagingLink({number: pageCount});
-
-          if (page.number > 1)
-            l.$previous = this.pagingLink({number: page.number - 1});
-
-          if (page.number < pageCount)
-            l.$next = this.pagingLink({number: page.number + 1});
-
-          break;
-
-        case 'offset':
-          l.$first = this.pagingLink({offset: 0});
-          l.$last = this.pagingLink({offset: (pageCount -  1) * page.size});
-
-          if (page.offset > 0)
-            l.$previous = this.pagingLink({offset: Math.max(0, page.offset - page.size)});
-
-          if (page.offset < count - page.size)
-            l.$next = this.pagingLink({offset: page.offset + page.size});
-
-          break;
-
-        case 'after':
-          let prev, next;
-
-          if (page.reverse) {
-            prev = exists;
-            next = typeof page.after !== 'undefined';
-
-          } else {
-            prev = typeof page.after !== 'undefined';
-            next = exists;
-          }
-
-          l.$first = this.pagingLink({after: ''});
-          l.$last = this.pagingLink({before: ''});
-
-          if (prev)
-            l.$previous = this.pagingLink({before: JSON.stringify(this._data[0][page.field])});
-
-          if (next)
-            l.$next = this.pagingLink({after: JSON.stringify(this._data[this._data.length-1][page.field])});
-
-          break;
-      }
-
-      this.meta({count, pageCount});
-    }
-
-    return this;
-  }
-
-
-  pagingLink(page, data) {
-    let querystring = {page};
-
-    if (this._querystring)
-      _.defaults(querystring, this._querystring.qs);
-
-    if (page)
-      querystring.page.size = this._querystring.page().size;
-
-    let str = qs.stringify(querystring);
-    if (str) str = '?' + str;
-
-    return this.url(this._type, data) + str;
-  }
-
-
-  links(template) {
-    if (arguments.length === 0) {
-      return this._links;
-
-    } else {
-      let links = compileLinks(template)(this._attributes);
-      _.assign(this._links, links);
-      return this;
-    }
-  }
-
-
-  meta(data) {
-    if (arguments.length === 0) {
-      return this._meta;
-
-    } else {
-      this._meta = _.assign(this._meta, data);
-      return this;
-    }
-  }
-
-
-  include(resource) {
-    if (arguments.length === 0) {
-      return this._includes;
-
-    } else {
-      if (_.isArray(resource)) {
-        for (let r of resource) {
-          this.include(r);
+        } else {
+          return this.new((_this) => _this._querystring = value);
         }
 
       } else {
-        if (resource instanceof Resource) {
-          resource = resource.toJSON();
+        return this._querystring;
+      }
+    },
+
+
+    paging(count, exists) {
+      if (arguments.length) {
+        return this.new((_this) => _this._paging = {count, exists});
+
+      } else {
+        return this._paging;
+      }
+    },
+
+
+    relatedResources() {
+      return this.new(function () {
+        let attributes = this.attributes();
+        let elements = this.elements();
+        let relationships = this.relationships();
+
+        if (attributes) {
+          this.processAttributes(() => void 0, relationships, attributes);
         }
 
-        resource = _.cloneDeep(resource);
-        this._includes.push(resource);
+        if (elements) {
+          _.forEach(elements, this.processRelationships.bind(this, relationships));
+        }
+      })._relatedResources;
+    },
+
+
+    toJSON() {
+      let _this = this.new();
+      let links = _this.links();
+      let relationships = _this.relationships();
+      let attributes = _this.attributes();
+      let meta = _this.meta();
+      let elements = _this.elements();
+      let includes = _this.includes();
+      let obj;
+
+      links.$self = (resource) => _this._urlGenerator(_this._type, resource[_this._idKey]);
+      let linksTemplate = compileLinks(links);
+
+      if (attributes) {
+        obj = _this.processAttributes(linksTemplate, attributes);
+
+        if (relationships.length) {
+          this.processRelationships(relationships, obj);
+        }
+
+      } else {
+        obj = {
+          links: {
+            $self: _this.pagingLink()
+          }
+        };
       }
 
-      return this;
+      if (_.keys(meta).length) {
+        obj.meta = meta;
+      }
+
+      if (elements.length) {
+        obj.elements = _this.elements()
+          .map(_this.processAttributes.bind(_this, linksTemplate))
+          .map(_this.processRelationships.bind(_this, relationships));
+      }
+
+      if (includes.length) {
+        obj.includes = includes.map((x) => x.toJSON ? x.toJSON() : x);
+      }
+
+      _this.createPagingLinks(obj);
+      return obj;
+    },
+
+
+    createPagingLinks(obj) {
+      let options = this.paging();
+      let page = this._querystring && this._querystring.page();
+
+      if (options && page) {
+        let {count, exists} = options;
+        let pageCount = Math.ceil(count / page.size);
+        let l = obj.links;
+
+        switch (page.method) {
+          case 'number':
+            l.$first = this.pagingLink({number: 1});
+            l.$last = this.pagingLink({number: pageCount});
+
+            if (page.number > 1) {
+              l.$previous = this.pagingLink({number: page.number - 1});
+            }
+
+            if (page.number < pageCount) {
+              l.$next = this.pagingLink({number: page.number + 1});
+            }
+
+            break;
+
+          case 'offset':
+            l.$first = this.pagingLink({offset: 0});
+            l.$last = this.pagingLink({offset: (pageCount -  1) * page.size});
+
+            if (page.offset > 0) {
+              l.$previous = this.pagingLink({
+                offset: Math.max(0, page.offset - page.size)
+              });
+            }
+
+            if (page.offset < count - page.size) {
+              l.$next = this.pagingLink({offset: page.offset + page.size});
+            }
+
+            break;
+
+          case 'after':
+            let prev, next;
+
+            if (page.reverse) {
+              prev = exists;
+              next = typeof page.after !== 'undefined';
+
+            } else {
+              prev = typeof page.after !== 'undefined';
+              next = exists;
+            }
+
+            l.$first = this.pagingLink({after: ''});
+            l.$last = this.pagingLink({before: ''});
+
+            if (prev) {
+              l.$previous = this.pagingLink({
+                before: JSON.stringify(this._elements[0][page.field])
+              });
+            }
+
+            if (next) {
+              l.$next = this.pagingLink({
+                after: JSON.stringify(this._elements[this._elements.length-1][page.field])
+              });
+            }
+
+            break;
+        }
+
+        if (!obj.meta)
+          obj.meta = {};
+
+        obj.meta.count = count;
+        obj.meta.pageCount = pageCount;
+      }
+    },
+
+
+    pagingLink(page, id) {
+      let querystring = {page};
+
+      if (this._querystring)
+        _.defaults(querystring, this._querystring.qs);
+
+      if (page)
+        querystring.page.size = this._querystring.page().size;
+
+      let str = qs.stringify(querystring);
+      if (str) str = '?' + str;
+
+      return this._urlGenerator(this._type, id) + str;
+    },
+
+
+    processAttributes(linksTemplate, attributes) {
+      return {
+        links: linksTemplate(attributes),
+        attributes
+      };
+    },
+
+
+    processRelationships(relationships, obj) {
+      let attributes = obj.attributes;
+      let keys = _.keys(attributes);
+
+      for (let relationship of relationships) {
+        if (_.includes(keys, relationship.sourceKey)) {
+          let url;
+
+          if (relationship.destKey === this._idKey || !relationship.destKey) {
+            url = this._urlGenerator(relationship.resource, attributes[relationship.sourceKey]);
+
+          } else {
+            let filter = {};
+            filter[relationship.destKey] = attributes[relationship.sourceKey];
+
+            url = this._urlGenerator(relationship.resource) + querystringify({filter});
+          }
+
+          obj.links[relationship.name] = url;
+
+          if (typeof relationship.discard === 'undefined') {
+            relationship.discard = (relationship.destKey === this._idKey || !relationship.destKey);
+          }
+
+          if (relationship.discard) {
+            delete attributes[relationship.sourceKey];
+          }
+
+          this._relatedResources[url] = {resource: relationship.resource, name: relationship.name};
+        }
+      }
+
+      return obj;
     }
-  }
-
-
-  toJSON() {
-    let obj = {
-      links: this._links
-    };
-
-    if (_.keys(this._meta).length) {
-      obj.meta = this._meta;
-    }
-
-    if (this._attributes) {
-      obj.attributes = this._attributes;
-    }
-
-    if (this._elements) {
-      obj.elements = this._elements;
-    }
-
-    if (this._includes.length) {
-      obj.includes = this._includes;
-    }
-
-    return obj;
-  }
+  });
 };
 
 
-export function resourcify(data, keyBy, links={}) {
-  links.$self = keyBy;
-  links = compileLinks(links);
-
-  if (Array.isArray(data)) {
-    return {
-      elements: _.map(data, _.partial(resourcifyElement, _, links))
-    }
-
-  } else {
-    return resourcifyElement(data, links);
-  }
-};
-
-
-const resourcifyElement = function (data, linksTemplate) {
-  let obj = {attributes: data};
-
-  if (linksTemplate) {
-    obj.links = linksTemplate(data);
-  }
-
-  return obj;
-};
-
-
-export function compileLinks(links) {
+function compileLinks(links) {
   if (links && !_.isFunction(links)) {
     let template = _.mapValues(links, (x) => _.isFunction(x) ? x : _.template(x));
     return (x) => _.mapValues(template, (fn) => fn(x));
   }
-};
+}

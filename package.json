@@ -33,6 +33,7 @@
     "load-grunt-tasks": "^3.4.1"
   },
   "dependencies": {
+    "immutable-builder": "^0.4.0",
     "lodash": "^4.6.1",
     "qs": "^6.1.0"
   }

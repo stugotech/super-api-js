@@ -1,6 +1,7 @@
 
 import _ from 'lodash';
 import BadRequestError from './errors/BadRequestError';
+import qs from 'qs';
 
 
 export default class QueryStringParser {
@@ -156,3 +157,19 @@ export default class QueryStringParser {
     return this._include;
   }
 };
+
+
+
+function mapValuesDeep(obj, fn) {
+  return _.mapValues(obj, (v) => _.isPlainObject(v) ? mapValuesDeep(v, fn) : fn(v));
+}
+
+export function querystringify(query) {
+  if (!query) {
+    return '';
+
+  } else {
+    let obj = mapValuesDeep(query, JSON.stringify);
+    return '?' + qs.stringify(obj);
+  }
+}
