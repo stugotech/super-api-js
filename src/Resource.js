@@ -246,11 +246,11 @@ function Resource(_type, _baseUrl, _idKey='id') {
             relationship.discard = (relationship.destKey === this._idKey || !relationship.destKey);
           }
 
+          this._relatedResources[url] = {resource: relationship.resource, name: relationship.name, key: attributes[relationship.sourceKey]};
+
           if (relationship.discard) {
             delete attributes[relationship.sourceKey];
           }
-
-          this._relatedResources[url] = {resource: relationship.resource, name: relationship.name};
         }
       }
 
