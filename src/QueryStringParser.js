@@ -1,6 +1,6 @@
 
 import _ from 'lodash';
-import BadRequestError from './errors/BadRequestError';
+import {BadRequestError} from 'http-status-errors';
 import qs from 'qs';
 
 

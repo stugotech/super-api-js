@@ -57,16 +57,19 @@ function Resource(_type, _baseUrl, _idKey='id') {
 
     relatedResources() {
       return this.new(function () {
-        let attributes = this.attributes();
-        let elements = this.elements();
         let relationships = this.relationships();
 
-        if (attributes) {
-          this.processAttributes(() => void 0, relationships, attributes);
-        }
+        if (relationships.length) {
+          let attributes = this.attributes();
+          let elements = this.elements();
 
-        if (elements) {
-          _.forEach(elements, this.processRelationships.bind(this, relationships));
+          if (attributes) {
+            this.processRelationships(relationships, {attributes, links: {}});
+          }
+
+          if (elements) {
+            _.forEach(elements, this.processRelationships.bind(this, relationships));
+          }
         }
       })._relatedResources;
     },
@@ -89,7 +92,7 @@ function Resource(_type, _baseUrl, _idKey='id') {
         obj = _this.processAttributes(linksTemplate, attributes);
 
         if (relationships.length) {
-          this.processRelationships(relationships, obj);
+          _this.processRelationships(relationships, obj);
         }
 
       } else {
@@ -229,15 +232,18 @@ function Resource(_type, _baseUrl, _idKey='id') {
       for (let relationship of relationships) {
         if (_.includes(keys, relationship.sourceKey)) {
           let url;
+          let operation;
 
           if (relationship.destKey === this._idKey || !relationship.destKey) {
             url = this._urlGenerator(relationship.resource, attributes[relationship.sourceKey]);
+            operation = 'get';
 
           } else {
             let filter = {};
             filter[relationship.destKey] = attributes[relationship.sourceKey];
 
             url = this._urlGenerator(relationship.resource) + querystringify({filter});
+            operation = 'list';
           }
 
           obj.links[relationship.name] = url;
@@ -246,7 +252,12 @@ function Resource(_type, _baseUrl, _idKey='id') {
             relationship.discard = (relationship.destKey === this._idKey || !relationship.destKey);
           }
 
-          this._relatedResources[url] = {resource: relationship.resource, name: relationship.name, key: attributes[relationship.sourceKey]};
+          this._relatedResources[url] = {
+            resource: relationship.resource,
+            name: relationship.name,
+            key: attributes[relationship.sourceKey],
+            operation
+          };
 
           if (relationship.discard) {
             delete attributes[relationship.sourceKey];

@@ -355,7 +355,7 @@ describe('Resource', function () {
       expect(json.attributes).to.eql({id: 1});
       expect(json.links.author).to.equal('http://api/users/2');
       expect(resource.relatedResources()).to.eql({
-        'http://api/users/2': {resource: 'users', name: 'author', key: 2}
+        'http://api/users/2': {resource: 'users', name: 'author', key: 2, operation: 'get'}
       });
     });
 
@@ -373,7 +373,7 @@ describe('Resource', function () {
       expect(json.attributes).to.eql({id: 1});
       expect(json.links.author).to.equal('http://api/users?filter%5BpostId%5D=1');
       expect(resource.relatedResources()).to.eql({
-        'http://api/users?filter%5BpostId%5D=1': {resource: 'users', name: 'author', key: 1}
+        'http://api/users?filter%5BpostId%5D=1': {resource: 'users', name: 'author', key: 1, operation: 'list'}
       });
     });
   });
