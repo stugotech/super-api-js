@@ -169,7 +169,12 @@ export function querystringify(query) {
     return '';
 
   } else {
-    let obj = mapValuesDeep(query, JSON.stringify);
+    let obj = _.assign(
+      {},
+      query,
+      mapValuesDeep(_.pick(query, 'filter', 'page'), JSON.stringify)
+    );
+
     return '?' + qs.stringify(obj);
   }
 }

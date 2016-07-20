@@ -1,6 +1,6 @@
 
 import {expect} from 'chai';
-import QueryStringParser from '../src/QueryStringParser';
+import QueryStringParser, {querystringify} from '../src/QueryStringParser';
 
 
 describe('QueryStringParser', function () {
@@ -219,6 +219,19 @@ describe('QueryStringParser', function () {
     it('should return the include list if specified', function () {
       expect(new QueryStringParser({include: 'a,b,c'}).include())
         .to.eql(['a', 'b', 'c']);
+    });
+  });
+
+
+  describe('querystringify', function () {
+    it('should work', function () {
+      expect(querystringify({
+          include: 'a,b',
+          sort: 'c,d',
+          filter: {a: 1, b: 'c'},
+          page: {after: 'abc'}
+        }))
+        .to.equal('?include=a%2Cb&sort=c%2Cd&filter%5Ba%5D=1&filter%5Bb%5D=%22c%22&page%5Bafter%5D=%22abc%22');
     });
   });
 });
