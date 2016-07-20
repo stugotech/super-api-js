@@ -68,7 +68,9 @@ function Resource(_type, _baseUrl, _idKey='id') {
           }
 
           if (elements) {
-            _.forEach(elements, this.processRelationships.bind(this, relationships));
+            _.forEach(elements,
+              (attributes) => this.processRelationships(relationships, {attributes, links: {}})
+            );
           }
         }
       })._relatedResources;

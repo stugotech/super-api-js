@@ -360,6 +360,47 @@ describe('Resource', function () {
     });
 
 
+    it('should work for arrays', function () {
+      resource = resource
+        .elements([
+          {
+            id: 1,
+            authorId: 2
+          },
+          {
+            id: 2,
+            authorId: 2
+          },
+          {
+            id: 3,
+            authorId: 1
+          }
+        ])
+        .relationships([
+          {name: 'author', sourceKey: 'authorId', resource: 'users'}
+        ]);
+
+      let json = resource.toJSON();
+
+      expect(json.elements.map((x) => x.attributes)).to.eql([
+        {id: 1},
+        {id: 2},
+        {id: 3}
+      ]);
+
+      expect(json.elements.map((x) => x.links.author)).to.eql([
+        'http://api/users/2',
+        'http://api/users/2',
+        'http://api/users/1'
+      ]);
+
+      expect(resource.relatedResources()).to.eql({
+        'http://api/users/2': {resource: 'users', name: 'author', key: 2, operation: 'get'},
+        'http://api/users/1': {resource: 'users', name: 'author', key: 1, operation: 'get'}
+      });
+    });
+
+
     it('should work for complex relationships', function () {
       resource = resource
         .attributes({
