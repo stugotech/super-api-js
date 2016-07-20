@@ -25,13 +25,15 @@ export default class SereneRequest extends Request {
       let related = response.result.relatedResources();
       let includes = this.query.include();
 
-      for (let url in related) {
-        let {operation, resource, name, key} = related[url];
+      if (includes) {
+        for (let url in related) {
+          let {operation, resource, name, key} = related[url];
 
-        if (includes.indexOf(name) > -1) {
-          let request = this.subrequest(operation, resource, key);
-          let {result} = await request.dispatch();
-          response.result = response.result.includes(result);
+          if (includes.indexOf(name) > -1) {
+            let request = this.subrequest(operation, resource, key);
+            let {result} = await request.dispatch();
+            response.result = response.result.includes(result);
+          }
         }
       }
     }

@@ -34,5 +34,32 @@ describe('SereneRequest', function () {
       expect(json.includes).to.have.length(1);
       expect(json.includes[0].attributes.resourceName).to.equal('users');
     });
+
+    it('should not fall over with no includes specified', async function () {
+      let serene = new Serene(SereneRequest);
+      let request = serene.request('get', 'widgets', null, null, 1);
+
+      request.resource = {
+        relationships: [
+          {name: 'author', sourceKey: 'authorId', resource: 'users'}
+        ]
+      };
+
+      request.query = {};
+
+      serene.use(function (request, response) {
+        response.result = response.result
+          .attributes({
+            id: 1,
+            authorId: 2,
+            resourceName: request.resourceName
+          });
+      });
+
+      let response = await request.dispatch();
+      let json = response.result.toJSON();
+      expect(json.attributes.resourceName).to.equal('widgets');
+      expect(json.includes).to.not.exist;
+    });
   });
 });
