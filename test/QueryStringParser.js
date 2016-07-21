@@ -30,6 +30,14 @@ describe('QueryStringParser', function () {
           b: [1, 2]
         });
     });
+
+    it('should work deeply', function () {
+      expect(new QueryStringParser({filter: {a: '"foo"', b: {$in: [1, 2]}}}).filter())
+        .to.eql({
+          a: ["foo"],
+          b: {$in: [1, 2]}
+        });
+    });
   });
 
 
