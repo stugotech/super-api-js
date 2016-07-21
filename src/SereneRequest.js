@@ -10,7 +10,8 @@ export default class SereneRequest extends Request {
   }
 
   async dispatch() {
-    this.query = new QueryStringParser(this.query, SereneRequest.options);
+    if (!(this.query instanceof QueryStringParser))
+      this.query = new QueryStringParser(this.query, SereneRequest.options);
 
     if (this.operationName !== 'delete') {
       this.response.result = new Resource(this.resourceName, this.baseUrl);
@@ -31,6 +32,8 @@ export default class SereneRequest extends Request {
 
           if (includes.indexOf(name) > -1) {
             let request = this.subrequest(operation, resource, key);
+            request.query.fields = this.query.qs.fields;
+
             let {result} = await request.dispatch();
             response.result = response.result.includes(result);
           }

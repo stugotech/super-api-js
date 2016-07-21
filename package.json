@@ -1,6 +1,6 @@
 {
   "name": "super-api-js",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "description": "JavaScript library for the Super API spec",
   "main": "index.js",
   "scripts": {
