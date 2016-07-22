@@ -133,6 +133,13 @@ function Resource(_type, _baseUrl, _idKey='id') {
         let pageCount = Math.ceil(count / page.size);
         let l = obj.links;
 
+        if (!obj.meta)
+          obj.meta = {};
+
+        obj.meta.count = count;
+        obj.meta.pageCount = pageCount;
+        obj.meta.size = page.size;
+
         switch (page.method) {
           case 'number':
             l.$first = this.pagingLink({number: 1});
@@ -146,6 +153,7 @@ function Resource(_type, _baseUrl, _idKey='id') {
               l.$next = this.pagingLink({number: page.number + 1});
             }
 
+            obj.meta.number = page.number;
             break;
 
           case 'offset':
@@ -162,6 +170,7 @@ function Resource(_type, _baseUrl, _idKey='id') {
               l.$next = this.pagingLink({offset: page.offset + page.size});
             }
 
+            obj.meta.offset = page.offset;
             break;
 
           case 'after':
@@ -191,14 +200,9 @@ function Resource(_type, _baseUrl, _idKey='id') {
               });
             }
 
+            obj.meta.after = page.after;
             break;
         }
-
-        if (!obj.meta)
-          obj.meta = {};
-
-        obj.meta.count = count;
-        obj.meta.pageCount = pageCount;
       }
     },
 

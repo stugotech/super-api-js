@@ -198,7 +198,9 @@ describe('Resource', function () {
 
       expect(resource.toJSON().meta).to.eql({
         count: 5,
-        pageCount: 3
+        pageCount: 3,
+        number: 2,
+        size: 2
       });
     });
 
@@ -222,7 +224,9 @@ describe('Resource', function () {
 
       expect(resource.toJSON().meta).to.eql({
         count: 5,
-        pageCount: 3
+        pageCount: 3,
+        offset: 2,
+        size: 2
       });
     });
 
@@ -246,7 +250,9 @@ describe('Resource', function () {
 
       expect(resource.toJSON().meta).to.eql({
         count: 5,
-        pageCount: 3
+        pageCount: 3,
+        after: 1,
+        size: 2
       });
     });
   });
