@@ -47,7 +47,7 @@ export default class QueryStringParser {
     if (typeof this._filter === 'undefined') {
       if (this.qs.filter) {
         this._filter = mapValuesDeep(this.qs.filter,
-          (value) => JSON.parse('[' + value + ']'));
+          (value) => JSON.parse(value));
 
       } else {
         this._filter = null;
@@ -56,7 +56,7 @@ export default class QueryStringParser {
 
     return this._filter;
   }
- 
+
 
   fields(name) {
     if (typeof this._fields === 'undefined') {
