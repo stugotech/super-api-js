@@ -1,7 +1,7 @@
 {
-  "name": "serene",
+  "name": "@stugo/super-api-js",
   "version": "1.0.0",
-  "description": "",
+  "description": "JavaScript library for the Super API spec",
   "main": "dist/SuperApi.js",
   "typings": "dist/SuperApi.d.ts",
   "scripts": {
@@ -10,13 +10,11 @@
   "author": "Stewart MacKenzie-Leigh",
   "license": "ISC",
   "dependencies": {
-    "@types/debug": "0.0.29",
     "@types/lodash": "^4.14.37",
     "@types/qs": "^6.2.30",
-    "debug": "^2.2.0",
     "http-status-errors": "^1.0.0",
     "lodash": "^4.16.4",
-    "qs": "^6.2.1"
+    "qs": "^6.3.0"
   },
   "devDependencies": {
     "ava": "^0.16.0"
