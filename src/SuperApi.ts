@@ -34,3 +34,7 @@ export * from './Resource';
 export {default as Resource} from './Resource';
 
 export * from './ResourceFormat';
+
+export * from './SuperApiClient';
+
+export * from './SuperApiServer';
