@@ -28,13 +28,15 @@ export interface SuperApiResourceCollection {
 
 
 export * from './QueryOptions';
-export {default as QueryOptions} from './QueryOptions';
+export { default as QueryOptions } from './QueryOptions';
 
 export * from './Resource';
-export {default as Resource} from './Resource';
+export { default as Resource } from './Resource';
 
 export * from './ResourceFormat';
 
 export * from './SuperApiClient';
+export { default as SuperApiClient } from './SuperApiClient';
 
 export * from './SuperApiServer';
+export { default as SuperApiServer } from './SuperApiServer';
