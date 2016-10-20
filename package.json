@@ -1,9 +1,9 @@
 {
   "name": "@stugotech/super-api-js",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "JavaScript library for the Super API spec",
-  "main": "dist/SuperApi.js",
-  "typings": "dist/SuperApi.d.ts",
+  "main": "dist/src/SuperApi.js",
+  "typings": "dist/src/SuperApi.d.ts",
   "scripts": {
     "test": "tsc && ava dist/test",
     "prepublish": "tsc"
