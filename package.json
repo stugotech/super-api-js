@@ -1,11 +1,12 @@
 {
   "name": "@stugotech/super-api-js",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "JavaScript library for the Super API spec",
   "main": "dist/SuperApi.js",
   "typings": "dist/SuperApi.d.ts",
   "scripts": {
-    "test": "tsc && ava dist/test"
+    "test": "tsc && ava dist/test",
+    "prepublish": "tsc"
   },
   "author": "Stewart MacKenzie-Leigh",
   "license": "ISC",
