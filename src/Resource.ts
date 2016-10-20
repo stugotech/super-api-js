@@ -142,6 +142,8 @@ export default class Resource {
           
           return this;
         });
+    } else {
+      return Promise.resolve(this);
     }
   }
 
