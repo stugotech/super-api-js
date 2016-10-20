@@ -3,8 +3,9 @@ import { SuperApi, SuperApiResourceCollection } from './SuperApi';
 import { ResourceFormat, DefaultResourceFormat } from './ResourceFormat';
 import { NotFoundError } from 'http-status-errors';
 
-export type SuperApiService = _.Dictionary<SuperApiResourceCollection>;
-
+export interface SuperApiService {
+  [id: string]: SuperApiResourceCollection
+};
 
 export default class SuperApiServer implements SuperApi {
   resourceFormat: ResourceFormat;

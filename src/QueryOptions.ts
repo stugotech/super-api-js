@@ -1,4 +1,3 @@
-/// <reference path="./http-status-errors.d.ts" />
 import {BadRequestError} from 'http-status-errors';
 import * as _ from 'lodash';
 import * as qs from 'qs';
