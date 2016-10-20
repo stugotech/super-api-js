@@ -1,18 +1,18 @@
 import QueryOptions from './QueryOptions';
 import Resource from './Resource';
-import { ResourceUrlGenerator } from './ResourceUrlGenerator';
+import { ResourceFormat } from './ResourceFormat';
 
 
 export interface SuperApi {
-  urlGenerator: ResourceUrlGenerator;
+  resourceFormat: ResourceFormat;
 
   resource(name: string): SuperApiResourceCollection;
-
-  request(method: string, url: string, data?): PromiseLike<Resource>;
 };
 
 
 export interface SuperApiResourceCollection {
+  parent: SuperApi;
+
   list(queryOptions?: QueryOptions): PromiseLike<Resource>;
 
   get(id, queryOptions?: QueryOptions): PromiseLike<Resource>;
@@ -33,4 +33,4 @@ export {default as QueryOptions} from './QueryOptions';
 export * from './Resource';
 export {default as Resource} from './Resource';
 
-export * from './ResourceUrlGenerator';
+export * from './ResourceFormat';

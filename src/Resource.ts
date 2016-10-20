@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import QueryOptions, { FilterSpec, PageSpec } from './QueryOptions';
-import { ResourceUrlGenerator, DefaultResourceUrlGenerator } from './ResourceUrlGenerator';
+import { ResourceFormat, DefaultResourceFormat } from './ResourceFormat';
 import { SuperApi } from './SuperApi';
 import SuperApiClient from './SuperApiClient';
 
@@ -47,12 +47,12 @@ export class Relationship {
 export class RelationshipLink {
   single: boolean;
 
-  constructor(private urlGenerator: ResourceUrlGenerator, public relationship: Relationship, public id) {
-    this.single = this.urlGenerator.getIdKey(relationship.resource) === relationship.destKey;
+  constructor(private resourceFormat: ResourceFormat, public relationship: Relationship, public id) {
+    this.single = resourceFormat.getIdKey(relationship.resource) === relationship.destKey;
   }
 
   toString() {
-    return this.urlGenerator.generateUrl(this.relationship.resource, new QueryOptions({filter: {
+    return this.resourceFormat.getUrl(this.relationship.resource, new QueryOptions({filter: {
       [this.relationship.sourceKey]: this.id
     }}));
   }
@@ -64,12 +64,12 @@ export type PagingInfo = {count: number, exists?: boolean};
 
 export default class Resource {
   private json: ResourceJson;
-  private urlGenerator?: ResourceUrlGenerator;
+  private resourceFormat?: ResourceFormat;
   private includedResources: _.Dictionary<Resource>;
 
   constructor(private superApiClient?: SuperApi, public type?: string, public queryOptions?: QueryOptions) {
     if (superApiClient) {
-      this.urlGenerator = superApiClient.urlGenerator;
+      this.resourceFormat = superApiClient.resourceFormat;
     }
   }
 
@@ -167,7 +167,15 @@ export default class Resource {
       return Promise.resolve(this.includedResources[this.json.links[name].toString()] || null);
 
     } else if (this.json.links[name]) {
-      return this.superApiClient.request('GET', this.json.links[name].toString());
+      let url = this.json.links[name].toString();
+      let key = this.resourceFormat.getResourceKey(url);
+      
+      if (typeof key.id !== 'undefined') {
+        return this.superApiClient.resource(key.type).get(key.id);
+
+      } else {
+        return this.superApiClient.resource(key.type).list();
+      }
 
     } else {
       return Promise.resolve(null);
@@ -259,7 +267,7 @@ export default class Resource {
 
   private getLinks(data: ResourceData) {
     let links: ResourceLinks = {
-      $self: this.urlGenerator.generateUrl(this.type, this.queryOptions, data.attributes)
+      $self: this.resourceFormat.getUrl(this.type, this.queryOptions, data.attributes)
     };
 
     for (let k in data.links) {
@@ -268,7 +276,7 @@ export default class Resource {
       if (link instanceof Relationship) {
         if (data.attributes && data.attributes[link.sourceKey] != null) {
           links[k] = new RelationshipLink(
-            this.urlGenerator,
+            this.resourceFormat,
             link,
             data.attributes[link.sourceKey]
           );
@@ -294,32 +302,32 @@ export default class Resource {
 
       switch (page.method) {
         case 'number':
-          links['$first'] = this.urlGenerator.generateUrl(this.type, new QueryOptions({page: {number: 1}}));
-          links['$last'] = this.urlGenerator.generateUrl(this.type, new QueryOptions({page: {number: pageCount}}));
+          links['$first'] = this.resourceFormat.getUrl(this.type, new QueryOptions({page: {number: 1}}));
+          links['$last'] = this.resourceFormat.getUrl(this.type, new QueryOptions({page: {number: pageCount}}));
 
           if (page.number > 1) {
-            links['$previous'] = this.urlGenerator.generateUrl(this.type, new QueryOptions({page: {number: page.number - 1}}));
+            links['$previous'] = this.resourceFormat.getUrl(this.type, new QueryOptions({page: {number: page.number - 1}}));
           }
 
           if (page.number < pageCount) {
-            links['$next'] = this.urlGenerator.generateUrl(this.type, new QueryOptions({page: {number: page.number + 1}}));
+            links['$next'] = this.resourceFormat.getUrl(this.type, new QueryOptions({page: {number: page.number + 1}}));
           }
 
           meta.page.number = page.number;
           break;
 
         case 'offset':
-          links['$first'] = this.urlGenerator.generateUrl(this.type, new QueryOptions({page: {offset: 0}}));
-          links['$last'] = this.urlGenerator.generateUrl(this.type, new QueryOptions({page: {offset: (pageCount - 1) * page.size}}));
+          links['$first'] = this.resourceFormat.getUrl(this.type, new QueryOptions({page: {offset: 0}}));
+          links['$last'] = this.resourceFormat.getUrl(this.type, new QueryOptions({page: {offset: (pageCount - 1) * page.size}}));
 
           if (page.offset > 0) {
-            links['$previous'] = this.urlGenerator.generateUrl(this.type, new QueryOptions({page: {
+            links['$previous'] = this.resourceFormat.getUrl(this.type, new QueryOptions({page: {
               offset: Math.max(0, page.offset - page.size)
             }}));
           }
 
           if (page.offset < info.count - page.size) {
-            links['$next'] = this.urlGenerator.generateUrl(this.type, new QueryOptions({page: {offset: page.offset + page.size}}));
+            links['$next'] = this.resourceFormat.getUrl(this.type, new QueryOptions({page: {offset: page.offset + page.size}}));
           }
 
           meta.page.offset = page.offset;
@@ -339,17 +347,17 @@ export default class Resource {
             }
           }
 
-          links['$first'] = this.urlGenerator.generateUrl(this.type, new QueryOptions({page: {after: ''}}));
-          links['$last'] = this.urlGenerator.generateUrl(this.type, new QueryOptions({page: {before: ''}}));
+          links['$first'] = this.resourceFormat.getUrl(this.type, new QueryOptions({page: {after: ''}}));
+          links['$last'] = this.resourceFormat.getUrl(this.type, new QueryOptions({page: {before: ''}}));
 
           if (prev) {
-            links['$previous'] = this.urlGenerator.generateUrl(this.type, new QueryOptions({page: {
+            links['$previous'] = this.resourceFormat.getUrl(this.type, new QueryOptions({page: {
               before: data.elements[0][page.field]
             }}));
           }
 
           if (next) {
-            links['$next'] = this.urlGenerator.generateUrl(this.type, new QueryOptions({page: {
+            links['$next'] = this.resourceFormat.getUrl(this.type, new QueryOptions({page: {
               after: data.elements[data.elements.length - 1][page.field]
             }}));
           }

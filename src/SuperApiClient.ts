@@ -1,19 +1,21 @@
 import QueryOptions, { FilterSpec } from './QueryOptions';
 import Resource from './Resource';
-import { ResourceUrlGenerator, DefaultResourceUrlGenerator } from './ResourceUrlGenerator';
+import { ResourceFormat, DefaultResourceFormat } from './ResourceFormat';
 import { SuperApi, SuperApiResourceCollection } from './SuperApi';
+import 'isomorphic-fetch';
 
 
 export default class SuperApiClient implements SuperApi {
-  urlGenerator: ResourceUrlGenerator;
+  resourceFormat: ResourceFormat;
   auth: string;
 
-  constructor(public baseUrl: string, urlGenerator: ResourceUrlGenerator = null) {
-    this.urlGenerator = urlGenerator || new DefaultResourceUrlGenerator(baseUrl);
+  constructor(public baseUrl: string, urlGenerator: ResourceFormat = null) {
+    this.resourceFormat = urlGenerator || new DefaultResourceFormat(baseUrl);
   }
 
   resource(name: string): SuperApiResourceCollection {
     return {
+      parent: this,
       list: this.list.bind(this, name),
       get: this.get.bind(this, name),
       create: this.create.bind(this, name),
@@ -24,7 +26,7 @@ export default class SuperApiClient implements SuperApi {
   }
 
   private url(name: string, id?, queryOptions?: QueryOptions) {
-    return this.urlGenerator.generateUrl(name, queryOptions, null, id);
+    return this.resourceFormat.getUrl(name, queryOptions, null, id);
   }
 
   list(name: string, queryOptions?: QueryOptions) {
@@ -52,6 +54,28 @@ export default class SuperApiClient implements SuperApi {
   }
 
   request(method: string, url: string, data=null): PromiseLike<Resource> {
-    throw new Error('not implemented');
+    let headers: HeadersInit = {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    };
+
+    if (this.auth) {
+      headers['Authentication'] = this.auth;
+    }
+
+    let request: RequestInit = {
+      method,
+      headers
+    };
+
+    if (data) {
+      request.body = JSON.stringify(data);
+    }
+
+    return fetch(url, request)
+      .then((response) => response.json())
+      .then((data) => {
+        return new Resource(this).set(data);
+      });
   }
 };
