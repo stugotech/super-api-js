@@ -1,4 +1,3 @@
-import {BadRequestError} from 'http-status-errors';
 import * as _ from 'lodash';
 import * as qs from 'qs';
 
@@ -163,10 +162,6 @@ export default class QueryOptions {
       if (this.qs.page || this.options.defaultPageSize || this.options.defaultPageMethod) {
         this.qs.page = this.qs.page || {};
         let method = _.intersection(_.keys(this.qs.page), ['number', 'offset', 'after', 'before']);
-
-        if (method.length > 1) {
-          throw new BadRequestError('more than one method of paging specified');
-        }
 
         if (method[0] === 'before') {
           method[0] = 'after';

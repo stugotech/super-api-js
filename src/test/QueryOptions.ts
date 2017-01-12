@@ -1,5 +1,5 @@
 
-import QueryOptions, { SortSpec, PageSpec, QueryOptionSettings } from '../src/QueryOptions';
+import QueryOptions, { SortSpec, PageSpec, QueryOptionSettings } from '../lib/QueryOptions';
 import test from 'ava';
 
 test('sort returns null if not specified', (t) => {
@@ -63,11 +63,6 @@ test('page returns defaults if not specified', (t) => {
     size: 100,
     number: 1
   });
-});
-
-test('page throws if more than one page method in use', (t) => {
-  let options = new QueryOptions({page: {number: 2, offset: 0}});
-  t.throws(() => options.page());
 });
 
 test('page works for number paging', (t) => {
