@@ -156,8 +156,11 @@ export default class QueryOptions {
     }
   }
 
-
-  page() {
+  page(): PageSpec;
+  page(method: NumberPageMethod): NumberPageSpec;
+  page(method: OffsetPageMethod): OffsetPageSpec;
+  page(method: AfterPageMethod): AfterPageSpec;
+  page(method?: PageMethod): PageSpec {
     if (typeof this._page === 'undefined') {
       if (this.qs.page || this.options.defaultPageSize || this.options.defaultPageMethod) {
         this.qs.page = this.qs.page || {};
@@ -212,7 +215,36 @@ export default class QueryOptions {
       }
     }
 
-    return this._page;
+    if (this._page && method) {
+      if (this._page.method === method) {
+        return this._page;
+
+      } else if (this._page.method === 'number' && method === 'offset') {
+        return {
+          method,
+          offset: (this._page.number - 1) * this._page.number,
+          size: this._page.size
+        };
+
+      } else if (this._page.method === 'offset' && method === 'number') {
+        let number = this._page.offset / this._page.size;
+        
+        if (!Number.isInteger(number))
+          throw new Error('expected number paging or a whole multiple of page size for offset');
+
+        return {
+          method,
+          number,
+          size: this._page.size
+        };
+
+      } else {
+        throw new Error(`expected ${method} paging`);
+      }
+
+    } else {
+      return this._page;
+    }
   }
 
 
