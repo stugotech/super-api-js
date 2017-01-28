@@ -174,3 +174,13 @@ test('include should return obj if specified', (t) => {
   let options = new QueryOptions({include: 'foo,bar'});
   t.deepEqual(options.include(), ['foo', 'bar']);
 });
+
+test('toString', (t) => {
+  let options = new QueryOptions({page: {number: 1}, filter: {foo: 'bar'}});
+  t.is(options.toString(), '?page%5Bnumber%5D=1&filter%5Bfoo%5D=%22bar%22');
+});
+
+test('clone and toString', (t) => {
+  let options = new QueryOptions({page: {number: 1, size: 10}});
+  t.is(options.clone({page: {number: 2}}).toString(), '?page%5Bnumber%5D=2&page%5Bsize%5D=10');
+});

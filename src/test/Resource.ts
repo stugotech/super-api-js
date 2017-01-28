@@ -96,3 +96,52 @@ test('Resource with elements', (t) => {
   );
 });
 
+
+test('flatten', (t) => {
+  let resource = new Resource('/widgets', [
+    new Resource('/widgets/<%=id%>', {
+      id: 1,
+      userId: 5,
+      user: {
+        id: 5,
+        name: 'Bob'
+      }
+    })
+    .addLink('user', '/users/5')
+  ]);
+
+  resource.flatten();
+
+  t.deepEqual<any>(
+    resource.toJSON(),
+    {
+      links: {
+        $self: '/widgets'
+      },
+      elements: [
+        {
+          links: {
+            $self: '/widgets/1',
+            user: '/users/5'
+          },
+          attributes: {
+            id: 1,
+            userId: 5
+          }
+        }
+      ],
+      includes: [
+        {
+          links: {
+            $self: '/users/5'
+          },
+          attributes: {
+            id: 5,
+            name: 'Bob'
+          }
+        }
+      ]
+    }
+  )
+});
+

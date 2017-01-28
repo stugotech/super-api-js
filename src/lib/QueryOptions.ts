@@ -262,6 +262,11 @@ export default class QueryOptions {
   }
 
 
+  clone(merge?) {
+    return new QueryOptions(_.merge({}, this.qs, merge), this.options);
+  }
+
+
   toString() {
     let query = _.pickBy(this.qs, (x) => x != null);
 

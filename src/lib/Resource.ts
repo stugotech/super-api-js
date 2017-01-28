@@ -25,21 +25,6 @@ export interface ResourceFetcher {
 };
 
 
-export interface ResourceCollection {
-  list(queryOptions?: QueryOptions): PromiseLike<Resource>;
-
-  get(id, queryOptions?: QueryOptions): PromiseLike<Resource>;
-
-  create(body): PromiseLike<Resource>;
-
-  replace(id, body): PromiseLike<Resource>;
-
-  update(id, body): PromiseLike<Resource>;
-
-  delete(id): PromiseLike<Resource>;
-};
-
-
 export default class Resource {
   attributes;
   elements: Resource[];
@@ -96,11 +81,13 @@ export default class Resource {
     for (let k in links) {
       this.addLink(k, links[k]);
     }
+    return this;
   }
 
 
   addLink(name: string, link: string) {
     this.links[name] = _.template(link)(this.attributes);
+    return this;
   }
 
 
@@ -142,5 +129,35 @@ export default class Resource {
       json.includes = this.includes;
 
     return json;
+  }
+
+
+  flatten() {
+    let includes = {};
+    this._flatten(includes);
+
+    if (!this.includes)
+      this.includes = [];
+    
+    this.includes.push(..._.map(includes, (attributes, link) => new Resource(link, attributes)));
+    return this;
+  }
+
+
+  private _flatten(includes: {[id: string]: Object}) {
+    if (this.attributes) {
+      let subAttributeNames = _.intersection(Object.keys(this.links), Object.keys(this.attributes));
+
+      _.assign(includes, _.zipObject(
+        _.values(_.pick(this.links, subAttributeNames)),
+        _.values(_.pick(this.attributes, subAttributeNames))
+      ));
+
+      this.attributes = _.omit(this.attributes, subAttributeNames);
+    }
+
+    if (this.elements) {
+      this.elements.forEach((element) => element._flatten(includes));
+    }
   }
 };
