@@ -145,3 +145,36 @@ test('flatten', (t) => {
   )
 });
 
+
+test('toObject with existing includes', async (t) => {
+  let resource = new Resource('/widgets/<%=id%>', {
+    id: 1,
+    userId: 5,
+    user: {
+      id: 5,
+      name: 'Bob'
+    }
+  }).addLink('user', '/users/5');
+
+  const fetcher: SuperApi.ResourceFetcher = {
+    fetch(url: string) {
+      t.fail('should not have called fetch');
+      return null;
+    }
+  };
+
+  let obj = await resource
+    .flatten()
+    .toObject(['user'], fetcher);
+
+  t.deepEqual(obj, {
+    id: 1,
+    userId: 5,
+    user: {
+      id: 5,
+      name: 'Bob'
+    }
+  });
+});
+
+

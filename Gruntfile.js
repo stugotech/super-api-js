@@ -24,4 +24,5 @@ module.exports = function (grunt) {
 
   grunt.registerTask('default', ['ts']);
   grunt.registerTask('rebuild', ['clean', 'default']);
+  grunt.registerTask('w', ['default', 'watch']);
 };

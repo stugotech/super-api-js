@@ -30,6 +30,7 @@ export default class Resource {
   elements: Resource[];
   links: ResourceLinks;
   includes: Resource[];
+  includesMap: _.Dictionary<Resource>;
   meta;
 
 
@@ -52,7 +53,13 @@ export default class Resource {
 
       this.mapElements('elements', json);
       this.mapElements('includes', json);
+      this._refreshIncludeMap();
     }
+  }
+
+
+  private _refreshIncludeMap() {
+    this.includesMap = _.mapValues(_.groupBy(this.includes, (resource) => resource.links.$self), (list) => list[0]);
   }
 
 
@@ -92,14 +99,20 @@ export default class Resource {
 
 
   async toObject(include: string[], fetcher: ResourceFetcher) {
-    let resources = await Promise.all(
-      include
-        .map((link) => fetcher.fetch(this.links[link]))
+    const links = _.intersection(include, Object.keys(this.links));
+
+    const resources = await Promise.all(
+      links
+        .map(async (link) => {
+          const url = this.links[link];
+          const resource: Resource = this.includesMap[url] || await fetcher.fetch(url);
+          return resource.toObjectOrArray(include, fetcher);
+        })
     );
 
     return {
       ...this.attributes,
-      ..._.zipObject(include, resources)
+      ..._.zipObject(links, resources)
     };
   }
 
@@ -108,6 +121,19 @@ export default class Resource {
     return await Promise.all(
       this.elements.map((element) => element.toObject(include, fetcher))
     );
+  }
+
+
+  toObjectOrArray(include: string[], fetcher: ResourceFetcher) {
+    if (this.attributes) {
+      return this.toObject(include, fetcher);
+
+    } else if (this.elements) {
+      return this.toArray(include, fetcher);
+
+    } else {
+      return null;
+    }
   }
 
 
@@ -140,6 +166,7 @@ export default class Resource {
       this.includes = [];
     
     this.includes.push(..._.map(includes, (attributes, link) => new Resource(link, attributes)));
+    this._refreshIncludeMap();
     return this;
   }
 
