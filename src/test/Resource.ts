@@ -165,7 +165,7 @@ test('toObject with existing includes', async (t) => {
 
   let obj = await resource
     .flatten()
-    .toObject(['user'], fetcher);
+    .toObject<any>(['user'], fetcher);
 
   t.deepEqual(obj, {
     id: 1,

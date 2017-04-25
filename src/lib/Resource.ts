@@ -1,6 +1,18 @@
 import * as _ from 'lodash';
 import QueryOptions from './QueryOptions';
 
+export interface PageInfo {
+  number: number;
+  size: number;
+  count: number;
+};
+
+
+export interface ResourceMeta extends _.Dictionary<any> {
+  page?: PageInfo;
+  count?: number;
+};
+
 
 export interface ResourceJson {
   links: ResourceLinks;
@@ -25,18 +37,25 @@ export interface ResourceFetcher {
 };
 
 
+export interface ResourcePage<T> {
+  elements: T[];
+  count: number;
+  page: PageInfo;
+};
+
+
 export default class Resource {
   attributes;
   elements: Resource[];
   links: ResourceLinks;
   includes: Resource[];
   includesMap: _.Dictionary<Resource>;
-  meta;
+  meta: ResourceMeta;
 
 
   constructor(json: ResourceJson);
-  constructor(url: string, contents?);
-  constructor(json: ResourceJson | string, contents?) {
+  constructor(url: string, contents?, meta?);
+  constructor(json: ResourceJson | string, contents?, meta?: ResourceMeta) {
     if (typeof json === 'string') {
       this.links = {$self: _.template(json)(contents)};
 
@@ -46,6 +65,10 @@ export default class Resource {
         this.attributes = contents;
       }
 
+      if (meta) {
+        this.meta = meta;
+      }
+      
     } else {
       this.attributes = json.attributes;
       this.meta = json.meta;
@@ -98,7 +121,7 @@ export default class Resource {
   }
 
 
-  async toObject(include: string[], fetcher: ResourceFetcher) {
+  async toObject<T>(include: string[], fetcher: ResourceFetcher): Promise<T> {
     const links = _.intersection(include, Object.keys(this.links));
 
     const resources = await Promise.all(
@@ -117,10 +140,19 @@ export default class Resource {
   }
 
 
-  async toArray(include: string[], fetcher: ResourceFetcher) {
-    return await Promise.all(
+  toArray<T>(include: string[], fetcher: ResourceFetcher): Promise<T[]> {
+    return Promise.all(
       this.elements.map((element) => element.toObject(include, fetcher))
     );
+  }
+
+
+  async toPage<T>(include: string[], fetcher: ResourceFetcher): Promise<ResourcePage<T>> {
+    return {
+      elements: await this.toArray<T>(include, fetcher),
+      count: this.meta.count,
+      page: this.meta.page
+    };
   }
 
 

@@ -1,6 +1,6 @@
 {
   "name": "@stugotech/super-api-js",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "JavaScript library for the Super API spec",
   "main": "dist/lib/SuperApi.js",
   "types": "dist/lib/SuperApi.d.ts",
@@ -15,15 +15,15 @@
     "qs": "^6.3.0"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.37",
+    "@types/lodash": "^4.14.63",
     "@types/node": "^6.0.59",
     "@types/qs": "^6.2.30",
     "ava": "^0.16.0",
     "grunt": "^1.0.1",
     "grunt-contrib-clean": "^1.0.0",
     "grunt-contrib-watch": "^1.0.0",
-    "grunt-ts": "^6.0.0-beta.9",
+    "grunt-ts": "^6.0.0-beta.15",
     "load-grunt-tasks": "^3.5.2",
-    "typescript": "^2.1.4"
+    "typescript": "^2.2.2"
   }
 }
