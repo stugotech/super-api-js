@@ -54,7 +54,7 @@ export default class Resource {
 
 
   constructor(json: ResourceJson);
-  constructor(url: string, contents?, meta?);
+  constructor(url: string, contents?, meta?: ResourceMeta);
   constructor(json: ResourceJson | string, contents?, meta?: ResourceMeta) {
     if (typeof json === 'string') {
       this.links = {$self: _.template(json)(contents)};
@@ -68,7 +68,7 @@ export default class Resource {
       if (meta) {
         this.meta = meta;
       }
-      
+
     } else {
       this.attributes = json.attributes;
       this.meta = json.meta;
