@@ -15,11 +15,12 @@ export interface ResourceMeta extends _.Dictionary<any> {
 
 
 export interface ResourceJson {
-  links: ResourceLinks;
+  links?: ResourceLinks;
   attributes?: any;
   elements?: ResourceJson[];
   includes?: ResourceJson[];
   meta?: ResourceMeta;
+  error?: ResourceErrorJson;
 };
 
 
@@ -44,6 +45,24 @@ export interface ResourcePage<T> {
 };
 
 
+export interface ResourceErrorJson {
+  name: string;
+  message: string;
+  status?: number;
+};
+
+
+export class ResourceError extends Error {
+  status: number;
+
+  constructor(error: ResourceErrorJson) {
+    super(error.message);
+    this.name = error.name;
+    this.status = error.status;
+  }
+};
+
+
 export default class Resource {
   attributes;
   elements: Resource[];
@@ -52,6 +71,7 @@ export default class Resource {
   includesMap: _.Dictionary<Resource>;
   meta: ResourceMeta;
   status: number;
+  error: ResourceErrorJson;
 
 
   constructor(json: ResourceJson, status?: number);
@@ -75,6 +95,7 @@ export default class Resource {
       this.meta = json.meta;
       this.links = json.links;
       this.status = contents;
+      this.error = json.error;
 
       this.mapElements('elements', json);
       this.mapElements('includes', json);
@@ -123,7 +144,17 @@ export default class Resource {
   }
 
 
+  toError() {
+    return this.error
+      ? new ResourceError(this.error)
+      : null;
+  }
+
+
   async toObject<T>(include: string[], fetcher: ResourceFetcher): Promise<T> {
+    if (this.error)
+      throw this.toError();
+
     const links = _.intersection(include, Object.keys(this.links));
 
     const resources = await Promise.all(
@@ -143,9 +174,14 @@ export default class Resource {
 
 
   toArray<T>(include: string[], fetcher: ResourceFetcher): Promise<T[]> {
-    return Promise.all(
-      this.elements.map((element) => element.toObject(include, fetcher))
-    );
+    if (this.error)
+      throw this.toError();
+    
+    return this.elements 
+      ? Promise.all(
+        this.elements.map((element) => element.toObject(include, fetcher))
+      )
+      : Promise.resolve([]);
   }
 
 

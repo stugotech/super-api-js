@@ -178,3 +178,23 @@ test('toObject with existing includes', async (t) => {
 });
 
 
+test('toObject with error', async (t) => {
+  const resource = new Resource({
+    error: {
+      name: 'TestError',
+      message: 'test message',
+      status: 500
+    }
+  });
+
+  const fetcher: SuperApi.ResourceFetcher = {
+    fetch(url: string) {
+      t.fail('should not have called fetch');
+      return null;
+    }
+  };
+
+  t.throws(resource.toObject([], fetcher), 'test message');
+});
+
+
