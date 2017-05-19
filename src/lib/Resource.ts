@@ -19,7 +19,7 @@ export interface ResourceJson {
   attributes?: any;
   elements?: ResourceJson[];
   includes?: ResourceJson[];
-  meta?: any;
+  meta?: ResourceMeta;
 };
 
 
@@ -51,9 +51,10 @@ export default class Resource {
   includes: Resource[];
   includesMap: _.Dictionary<Resource>;
   meta: ResourceMeta;
+  status: number;
 
 
-  constructor(json: ResourceJson);
+  constructor(json: ResourceJson, status?: number);
   constructor(url: string, contents?, meta?: ResourceMeta);
   constructor(json: ResourceJson | string, contents?, meta?: ResourceMeta) {
     if (typeof json === 'string') {
@@ -73,6 +74,7 @@ export default class Resource {
       this.attributes = json.attributes;
       this.meta = json.meta;
       this.links = json.links;
+      this.status = contents;
 
       this.mapElements('elements', json);
       this.mapElements('includes', json);
