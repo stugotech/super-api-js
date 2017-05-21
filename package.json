@@ -1,6 +1,6 @@
 {
   "name": "@stugotech/super-api-js",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "description": "JavaScript library for the Super API spec",
   "main": "dist/lib/SuperApi.js",
   "types": "dist/lib/SuperApi.d.ts",

@@ -155,7 +155,7 @@ export default class Resource {
     if (this.error)
       throw this.toError();
 
-    const links = _.intersection(include, Object.keys(this.links));
+    const links = _.intersection(include, Object.keys(this.links || {}));
 
     const resources = await Promise.all(
       links
